@@ -1,0 +1,67 @@
+main:
+    type: inventory
+    title: Main Menu
+    rows: 1
+    items:
+        -
+            item: $default.items.food.item
+            action: open food
+
+
+food:
+    type: inventory
+    title: Food
+    rows: 3
+    items:
+        -
+            item: $default.items.fish.item
+            action: buysell $default.items.fish.buy $default.items.fish.sell 2
+        -
+            item: burger
+            action: buy 50 5 1
+        -
+            item: cross
+            static_location: -1
+            action: open main
+        -
+            item: arrow
+            static_location: 1 -1
+            action: page next
+        -
+            item: arrow
+            static_location: 1 1
+            action: page prev
+
+
+
+default/items.yml
+fish:
+    buy: 100
+    sell: 10
+    item:
+        name: Fish
+        lore: A fish from somewhere
+
+
+
+
+
+
+Locations:
+    - {name}  - Opens in the same file
+    - {folder}.{folder}.{package}.{name} - Opens name from absolute folder/folder/package.yml
+    - .{folder}.{package}.{name} - Opens name from currentfolder/folder/package.yml
+    - ..{folder}.{package}.{name} - Opens name form currentfolder/../folder/package.yml
+
+
+GUIs:
+    - inventory
+
+GUI's can provide actions as well.
+
+
+Actions:
+    - open - Opens a GUI
+    - buysell - Opens a buy/sell page
+    - page - Changes page
+

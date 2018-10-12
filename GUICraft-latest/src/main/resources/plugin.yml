@@ -1,0 +1,16 @@
+name: GUICraft
+main: au.com.grieve.guicraft.GUICraftPlugin
+api-version: 1.13
+description: Advanced GUI System
+authors:
+  - bundabrg
+version: 1.0-preview
+commands:
+  guicraft:
+    description: General GUICraft Command
+    usage: /<command>
+    permission: guicraft.admin
+    aliases: [gc]
+permissions:
+  guicraft.admin:
+    default: op

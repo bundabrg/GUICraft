@@ -30,8 +30,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.logging.Level;
 
 
@@ -153,8 +156,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
         // Load config
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file.toFile());
         String realPath = path.replaceFirst("^/*", "");
-        String realFolder = realPath.substring()
-        packages.put(realPath, new PackageConfiguration(this, config, "/" + realPath));
+        packages.put(realPath, new PackageConfiguration(this, config, realPath));
     }
 
     protected void copySection(ConfigurationSection input, ConfigurationSection section) {
@@ -213,7 +215,6 @@ public class PackageConfiguration extends MemorySection implements Configuration
         if (getRoot() != this) {
             if (!path.startsWith("/")) {
                 path = getAbsolutePath(path.substring(0, fileSeparatorLocation)) + fileSeparator + path.substring(fileSeparatorLocation+1);
-                System.err.println("Abs: " + path);
             }
 
             return getRoot().get(path, def);
@@ -222,7 +223,10 @@ public class PackageConfiguration extends MemorySection implements Configuration
         // As root attempt to load
         String filePath = path.substring(0, fileSeparatorLocation).replaceFirst("^/*", "");
         if (!packages.containsKey(filePath)) {
-            return def;
+            filePath = "default/" + filePath;
+            if (!packages.containsKey(filePath)) {
+                return def;
+            }
         }
 
         return packages.get(filePath).get(path.substring(fileSeparatorLocation+1));
@@ -248,15 +252,24 @@ public class PackageConfiguration extends MemorySection implements Configuration
             return path;
         }
 
-        // Todo
-        return this.path + "/" + path;
+        // Get full path
+        String fullPath = "/" + this.path.substring(0, this.path.lastIndexOf("/")) + "/" + path;
 
-//        char fileSeparator = getRoot().options().fileSeparator();
-//        String myPath = "/";
-//        if (getRoot() != this) {
-//            myPath = getCurrentPath().substring(0, getCurrentPath().indexOf(fileSeparator));
-//        }
-//        return myPath + path;
+        Deque<String> stack = new ArrayDeque<>();
+        for (String part : fullPath.split("/")) {
+            if (part.equals("..")) {
+                if (!stack.isEmpty()) {
+                    stack.pop();
+                }
+                continue;
+            }
+            stack.push(part);
+        }
+
+        // Generator path
+        StringJoiner result = new StringJoiner("/");
+        stack.descendingIterator().forEachRemaining(p -> result.add(p.toString()));
+        return result.toString();
     }
 
     public ConfigurationSection getConfigurationSection(String path) {

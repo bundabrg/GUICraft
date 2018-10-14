@@ -26,7 +26,7 @@ import java.util.List;
 
 public class PackageConfigurationOptions extends ConfigurationOptions {
     private char fileSeparator = ':';
-//    private char filePathSeparator = '/';
+    //    private char filePathSeparator = '/';
     private List<ConfigurationTranslator> translators = new ArrayList<>();
     private String defaultPath = "config";
 

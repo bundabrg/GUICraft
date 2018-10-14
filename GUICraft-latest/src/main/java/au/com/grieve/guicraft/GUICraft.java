@@ -22,8 +22,6 @@ import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.nio.file.Paths;
-
 public class GUICraft extends VersionPlugin {
 
     @Override

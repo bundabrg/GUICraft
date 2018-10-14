@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -79,6 +78,22 @@ public class PackageConfiguration extends MemorySection implements Configuration
         this.path = path;
     }
 
+    public static PackageConfiguration loadConfiguration(File path) {
+        return loadConfiguration(path.toPath());
+    }
+
+    public static PackageConfiguration loadConfiguration(Path path) {
+        PackageConfiguration config = new PackageConfiguration();
+
+        try {
+            config.load(path);
+        } catch (IOException e) {
+            Bukkit.getLogger().log(Level.SEVERE, "Cannot load Configuration from directory: " + path.toString(), e);
+        }
+
+        return config;
+    }
+
     @Override
     public void addDefault(String s, Object o) {
 
@@ -95,13 +110,13 @@ public class PackageConfiguration extends MemorySection implements Configuration
     }
 
     @Override
-    public void setDefaults(Configuration configuration) {
-        throw new UnsupportedOperationException();
+    public Configuration getDefaults() {
+        return null;
     }
 
     @Override
-    public Configuration getDefaults() {
-        return null;
+    public void setDefaults(Configuration configuration) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -114,7 +129,6 @@ public class PackageConfiguration extends MemorySection implements Configuration
         }
         return options;
     }
-
 
     public void load(Path file) throws IOException {
         load(file, "default");
@@ -130,7 +144,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
         }
 
         Validate.notNull(path, "Path cannot be null");
-        Validate.notEmpty(path, "Path cannot be empty" );
+        Validate.notEmpty(path, "Path cannot be empty");
         Validate.notNull(file, "File cannot be null");
 
         // For directories we walk over it and recurse
@@ -141,7 +155,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
                     .forEach(p -> {
                         try {
                             String relativePath = file.relativize(p).toString();
-                            load(p, path + "/" + relativePath.substring(0, relativePath.length()-4));
+                            load(p, path + "/" + relativePath.substring(0, relativePath.length() - 4));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -171,22 +185,6 @@ public class PackageConfiguration extends MemorySection implements Configuration
         }
     }
 
-    public static PackageConfiguration loadConfiguration(File path) {
-        return loadConfiguration(path.toPath());
-    }
-
-    public static PackageConfiguration loadConfiguration(Path path) {
-        PackageConfiguration config = new PackageConfiguration();
-
-        try {
-            config.load(path);
-        } catch (IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Cannot load Configuration from directory: " + path.toString(), e);
-        }
-
-        return config;
-    }
-
     @Override
     public PackageConfiguration getRoot() {
         if (root != null) {
@@ -214,7 +212,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
         // If not root we pass to root
         if (getRoot() != this) {
             if (!path.startsWith("/")) {
-                path = getAbsolutePath(path.substring(0, fileSeparatorLocation)) + fileSeparator + path.substring(fileSeparatorLocation+1);
+                path = getAbsolutePath(path.substring(0, fileSeparatorLocation)) + fileSeparator + path.substring(fileSeparatorLocation + 1);
             }
 
             return getRoot().get(path, def);
@@ -229,8 +227,8 @@ public class PackageConfiguration extends MemorySection implements Configuration
             }
         }
 
-        return packages.get(filePath).get(path.substring(fileSeparatorLocation+1));
- //       return translate(super.get(path, def));
+        return packages.get(filePath).get(path.substring(fileSeparatorLocation + 1));
+        //       return translate(super.get(path, def));
     }
 
     /**
@@ -317,7 +315,6 @@ public class PackageConfiguration extends MemorySection implements Configuration
 //    public static String createPath(ConfigurationSection section, String key, ConfigurationSection relativeTo) {
 //        throw new UnsupportedOperationException();
 //    }
-
     @Override
     public String toString() {
         Configuration root = getRoot();
@@ -330,7 +327,6 @@ public class PackageConfiguration extends MemorySection implements Configuration
                 .append("']")
                 .toString();
     }
-
 
 
 }

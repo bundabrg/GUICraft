@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -46,18 +47,31 @@ public class PackageConfiguration extends MemorySection implements Configuration
     // PackageConfiguration Options
     private PackageConfigurationOptions options;
 
+    // Packages
+    private Map<String, PackageConfiguration> packages;
+    private PackageConfiguration root;
+
 
     //
     // Constructors
     //
 
-//    /**
-//     * Create an empty {@link PackageConfiguration} with no default values
-//     */
-//    public PackageConfiguration() {
-//        super();
-//    }
+    /**
+     * Create an empty {@link PackageConfiguration} with no default values
+     */
+    public PackageConfiguration() {
+        super();
+        packages = new HashMap<>();
+    }
 
+    /**
+     * Create a new ConfigurationPackage
+     */
+    public PackageConfiguration(PackageConfiguration root, Configuration config) {
+        super();
+        copySection(config, this);
+        this.root = root;
+    }
 
     @Override
     public void addDefault(String s, Object o) {
@@ -135,8 +149,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
         // Load config
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file.toFile());
-        char separator = options().fileSeparator();
-        copySection(config, createSection(path + separator));
+        packages.put(path.replaceFirst("^/*", ""), new PackageConfiguration(this, config));
     }
 
     private void printSection(ConfigurationSection section) {
@@ -181,43 +194,55 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
     @Override
     public PackageConfiguration getRoot() {
-        return (PackageConfiguration) super.getRoot();
+        if (root != null) {
+            return root;
+        } else {
+            return (PackageConfiguration) super.getRoot();
+        }
     }
 
-    @Override
-    public void set(String path, Object value) {
-        throw new UnsupportedOperationException();
-    }
+//    @Override
+//    public void set(String path, Object value) {
+//        throw new UnsupportedOperationException();
+//    }
 
     @Override
     public Object get(String path, Object def) {
         System.err.println("Get(" + path + ")");
         char fileSeparator = getRoot().options().fileSeparator();
-        char pathSeparator = getRoot().options().pathSeparator();
 
         // No filespec so we can just return what we know
         int fileSeparatorLocation = path.indexOf(fileSeparator);
-        if (fileSeparatorLocation == -1 || path.length() == fileSeparatorLocation+1) {
+        if (fileSeparatorLocation == -1) {
             return translate(super.get(path, def));
         }
 
-        // Absolute filespec.
-        if (path.startsWith("/")) {
-            PackageConfiguration root = getRoot();
-            if (root == this) {
-                return super.get(path.substring(0, fileSeparatorLocation) +  fileSeparator + pathSeparator + path.substring(fileSeparatorLocation+1), def);
+        // If not root we pass to root
+        if (getRoot() != this) {
+            if (!path.startsWith("/")) {
+                path = getAbsolutePath(path.substring(0, fileSeparatorLocation)) + fileSeparator + path.substring(fileSeparatorLocation+1);
             }
+
             return getRoot().get(path, def);
         }
 
-        // Relative filespec. Get an absolute path
-        return getRoot().get(getAbsolutePath(path.substring(0, fileSeparatorLocation)) + fileSeparator + path.substring(fileSeparatorLocation+1));
+        System.err.println("Packages: " + packages.keySet());
+
+        // As root attempt to load
+        String filePath = path.substring(0, fileSeparatorLocation).replaceFirst("^/*", "");
+        if (!packages.containsKey(filePath)) {
+            return def;
+        }
+
+        return packages.get(filePath).get(path.substring(fileSeparatorLocation+1));
+ //       return translate(super.get(path, def));
     }
 
     /**
      * Run input through all the translators
      */
     private Object translate(Object input) {
+        System.err.println("Translate: " + input);
         for (ConfigurationTranslator translator : options().translators()) {
             input = translator.translate(this, input);
         }

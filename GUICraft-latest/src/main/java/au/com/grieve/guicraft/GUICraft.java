@@ -28,17 +28,17 @@ public class GUICraft extends VersionPlugin {
     @Override
     public void onEnable() {
         PackageConfiguration config = PackageConfiguration.loadConfiguration(getDataFolder());
-        System.err.println("test1: " + config.getString("test1"));
-        System.err.println("test2.test1: " + config.getString("test2.test1"));
-        System.err.println("config:test1: " + config.getString("config:test1"));
-        System.err.println("config:test2.test1: " + config.getString("config:test2.test1"));
-        System.err.println("config2:test1: " + config.getString("config2:test1"));
-        System.err.println("config2:test2.test1: " + config.getString("config2:test2.test1"));
-        System.err.println("dir/config:test1: " + config.getString("dir/config:test1"));
-        System.err.println("dir/config:test2.test: " + config.getString("dir/config:test2.test1"));
+        System.err.println("test1:");System.err.println(config.getString("test1"));
+        System.err.println("test2.test1: ");System.err.println(config.getString("test2.test1"));
+        System.err.println("config:test1: ");System.err.println(config.getString("config:test1"));
+        System.err.println("config:test2.test1: ");System.err.println(config.getString("config:test2.test1"));
+        System.err.println("config2:test1: ");System.err.println(config.getString("config2:test1"));
+        System.err.println("config2:test2.test1: ");System.err.println(config.getString("config2:test2.test1"));
+        System.err.println("dir/config:test1: ");System.err.println(config.getString("dir/config:test1"));
+        System.err.println("dir/config:test2.test: ");System.err.println(config.getString("dir/config:test2.test1"));
 
-        System.err.println("config:test3: " + config.getString("config:test3"));
-        System.err.println("config:test4.test1: " + config.getString("config:test4.test1"));
-        System.err.println("config:test4.test1.test2: " + config.getString("config:test4.test1.test2"));
+        System.err.println("config:test3: ");System.err.println(config.getString("config:test3"));
+        System.err.println("config:test4.test1: ");System.err.println(config.getString("config:test4.test1"));
+        System.err.println("config:test4.test1.test2: ");System.err.println(config.getString("config:test4.test1.test2"));
     }
 }

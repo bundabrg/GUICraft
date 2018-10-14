@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -283,8 +285,11 @@ public class PackageConfiguration extends MemorySection implements Configuration
         }
 
         // Check if its a reference variable
-        if (val instanceof String && ((String) val).startsWith("$")) {
-            return (ConfigurationSection) getRoot().get(((String) val).substring(1));
+        if (val instanceof String) {
+            Matcher matcher = Pattern.compile("\\$(?:([^{\\s]+)|(?:\\{)([^\\}]*)(?:}))").matcher((String) val);
+            if (matcher.find()) {
+                return (ConfigurationSection) getRoot().get(matcher.group(1) != null?matcher.group(1):matcher.group(2));
+            }
         }
 
         return null;

@@ -36,15 +36,15 @@ public class GUICraft extends VersionPlugin {
 //        System.err.println("dir/config:test1: ");System.err.println(config.getString("dir/config:test1"));
 //        System.err.println("dir/config:test2.test: ");System.err.println(config.getString("dir/config:test2.test1"));
 //
-//        System.err.println("config:test3: ");System.err.println(config.getString("config:test3"));
-//        System.err.println("config:test4.test1: ");System.err.println(config.getString("config:test4.test1"));
+        System.err.println("config:test3: ");System.err.println(config.getString("config:test3"));
+        System.err.println("config:test4.test1: ");System.err.println(config.getString("config:test4.test1"));
 //        System.err.println("config:test4.test1.test2: ");System.err.println(config.getString("config:test4.test1.test2"));
 
-        ConfigurationSection section = config.getConfigurationSection("dir/config:");
-        section = section.getConfigurationSection("../config2:");
-        System.err.println("test1: " + section.get("test1"));
-        System.err.println("config2:test1: " + section.get("config2:test1"));
-        System.err.println("dir/yarn:test2.test1: " + section.get("dir/yarn:test2.test1"));
-        System.err.println("../config2:test2.test1: " + section.get("../config2:test2.test1"));
+//        ConfigurationSection section = config.getConfigurationSection("dir/config:");
+//        section = section.getConfigurationSection("../config2:");
+//        System.err.println("test1: " + section.get("test1"));
+//        System.err.println("config2:test1: " + section.get("config2:test1"));
+//        System.err.println("dir/yarn:test2.test1: " + section.get("dir/yarn:test2.test1"));
+//        System.err.println("../config2:test2.test1: " + section.get("../config2:test2.test1"));
     }
 }

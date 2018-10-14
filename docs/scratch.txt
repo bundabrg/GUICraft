@@ -4,7 +4,7 @@ main:
     rows: 1
     items:
         -
-            item: $default.items.food.item
+            item: $/default/items:food.item
             action: open food
 
 
@@ -14,8 +14,8 @@ food:
     rows: 3
     items:
         -
-            item: $default.items.fish.item
-            action: buysell $default.items.fish.buy $default.items.fish.sell 2
+            item: $/default/items:fish.item
+            action: buysell $/default/items:fish.buy $/default/items:fish.sell 2
         -
             item: burger
             action: buy 50 5 1

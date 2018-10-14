@@ -50,6 +50,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
     // Packages
     private Map<String, PackageConfiguration> packages;
     private PackageConfiguration root;
+    private String path;
 
 
     //
@@ -62,15 +63,17 @@ public class PackageConfiguration extends MemorySection implements Configuration
     public PackageConfiguration() {
         super();
         packages = new HashMap<>();
+        path = "";
     }
 
     /**
      * Create a new ConfigurationPackage
      */
-    public PackageConfiguration(PackageConfiguration root, Configuration config) {
+    public PackageConfiguration(PackageConfiguration root, Configuration config, String path) {
         super();
         copySection(config, this);
         this.root = root;
+        this.path = path;
     }
 
     @Override
@@ -111,7 +114,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
 
     public void load(Path file) throws IOException {
-        load(file, "");
+        load(file, "default");
     }
 
     /**
@@ -123,8 +126,8 @@ public class PackageConfiguration extends MemorySection implements Configuration
             throw new IOException("Can only load on root object");
         }
 
-        System.err.println("Loading: " + file.toString() + " at path: " + path);
         Validate.notNull(path, "Path cannot be null");
+        Validate.notEmpty(path, "Path cannot be empty" );
         Validate.notNull(file, "File cannot be null");
 
         // For directories we walk over it and recurse
@@ -149,19 +152,9 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
         // Load config
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file.toFile());
-        packages.put(path.replaceFirst("^/*", ""), new PackageConfiguration(this, config));
-    }
-
-    private void printSection(ConfigurationSection section) {
-        for (String key : section.getKeys(false)) {
-            Object value = section.get(key);
-
-            if (value instanceof ConfigurationSection) {
-                printSection((ConfigurationSection) value);
-            } else {
-                System.err.println(section.getCurrentPath() + "." + key + " = " + value);
-            }
-        }
+        String realPath = path.replaceFirst("^/*", "");
+        String realFolder = realPath.substring()
+        packages.put(realPath, new PackageConfiguration(this, config, "/" + realPath));
     }
 
     protected void copySection(ConfigurationSection input, ConfigurationSection section) {
@@ -208,7 +201,6 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
     @Override
     public Object get(String path, Object def) {
-        System.err.println("Get(" + path + ")");
         char fileSeparator = getRoot().options().fileSeparator();
 
         // No filespec so we can just return what we know
@@ -221,12 +213,11 @@ public class PackageConfiguration extends MemorySection implements Configuration
         if (getRoot() != this) {
             if (!path.startsWith("/")) {
                 path = getAbsolutePath(path.substring(0, fileSeparatorLocation)) + fileSeparator + path.substring(fileSeparatorLocation+1);
+                System.err.println("Abs: " + path);
             }
 
             return getRoot().get(path, def);
         }
-
-        System.err.println("Packages: " + packages.keySet());
 
         // As root attempt to load
         String filePath = path.substring(0, fileSeparatorLocation).replaceFirst("^/*", "");
@@ -242,7 +233,6 @@ public class PackageConfiguration extends MemorySection implements Configuration
      * Run input through all the translators
      */
     private Object translate(Object input) {
-        System.err.println("Translate: " + input);
         for (ConfigurationTranslator translator : options().translators()) {
             input = translator.translate(this, input);
         }
@@ -253,12 +243,40 @@ public class PackageConfiguration extends MemorySection implements Configuration
      * Return the absolute path given a possibly relative path
      */
     public String getAbsolutePath(String path) {
-        char fileSeparator = getRoot().options().fileSeparator();
-        String myPath = "/";
-        if (getRoot() != this) {
-            myPath = getCurrentPath().substring(0, getCurrentPath().indexOf(fileSeparator));
+        // Already absolute
+        if (path.startsWith("/")) {
+            return path;
         }
-        return myPath + path;
+
+        // Todo
+        return this.path + "/" + path;
+
+//        char fileSeparator = getRoot().options().fileSeparator();
+//        String myPath = "/";
+//        if (getRoot() != this) {
+//            myPath = getCurrentPath().substring(0, getCurrentPath().indexOf(fileSeparator));
+//        }
+//        return myPath + path;
+    }
+
+    public ConfigurationSection getConfigurationSection(String path) {
+        Object val = get(path, null);
+
+        if (val == null) {
+            val = get(path, getDefault(path));
+            return (val instanceof ConfigurationSection) ? createSection(path) : null;
+        }
+
+        if (val instanceof ConfigurationSection) {
+            return (ConfigurationSection) val;
+        }
+
+        // Check if its a reference variable
+        if (val instanceof String && ((String) val).startsWith("$")) {
+            return (ConfigurationSection) getRoot().get(((String) val).substring(1));
+        }
+
+        return null;
     }
 
     /**

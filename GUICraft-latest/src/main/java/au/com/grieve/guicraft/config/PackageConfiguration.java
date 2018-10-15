@@ -55,7 +55,8 @@ public class PackageConfiguration extends MemorySection implements Configuration
     private PackageConfigurationOptions options;
 
     // Packages
-    @Getter private Map<String, PackageConfiguration> packages;
+    @Getter
+    private Map<String, PackageConfiguration> packages;
     private PackageConfiguration root;
     private String path;
 
@@ -199,6 +200,10 @@ public class PackageConfiguration extends MemorySection implements Configuration
         }
     }
 
+    public PackageConfiguration getLocalRoot() {
+        return (PackageConfiguration) super.getRoot();
+    }
+
     @Override
     public Object get(String path, Object def) {
 
@@ -236,22 +241,25 @@ public class PackageConfiguration extends MemorySection implements Configuration
     }
 
     public ConfigurationSection getConfigurationSection(String path) {
+        ConfigurationSection result = super.getConfigurationSection(path);
+
+        if (result != null) {
+            return result;
+        }
+
+        // If root, pass to a child
+        if (getRoot() == this) {
+            Location location = new Location(path);
+            ConfigurationSection section = (ConfigurationSection) get(location.filePath, null);
+            return section == null ? null : section.getConfigurationSection(location.configPath);
+        }
+
+        // Else check if its a reference variable
         Object val = get(path, null);
-
-        if (val == null) {
-            val = get(path, getDefault(path));
-            return (val instanceof ConfigurationSection) ? createSection(path) : null;
-        }
-
-        if (val instanceof ConfigurationSection) {
-            return (ConfigurationSection) val;
-        }
-
-        // Check if its a reference variable
         if (val instanceof String) {
             Matcher matcher = Pattern.compile("\\$(?:([^{\\s]+)|(?:\\{)([^\\}]*)(?:}))").matcher((String) val);
             if (matcher.find()) {
-                return (ConfigurationSection) getRoot().get(matcher.group(1) != null?matcher.group(1):matcher.group(2));
+                return (ConfigurationSection) getLocalRoot().get(matcher.group(1) != null ? matcher.group(1) : matcher.group(2));
             }
         }
 
@@ -324,9 +332,9 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
             if (fileSeparatorLocation == -1) {
                 filePath = null;
-                configPath =  raw;
+                configPath = raw;
             } else {
-                int pathSeparatorLocation = raw.substring(fileSeparatorLocation+1).indexOf(pathSeparator);
+                int pathSeparatorLocation = raw.substring(fileSeparatorLocation + 1).indexOf(pathSeparator);
                 if (pathSeparatorLocation == -1) {
                     filePath = raw;
                     configPath = "";
@@ -340,6 +348,16 @@ public class PackageConfiguration extends MemorySection implements Configuration
         public Location(String filePath, String configPath) {
             this.filePath = filePath;
             this.configPath = configPath;
+        }
+
+        public Location configParent() {
+            char pathSeparator = getRoot().options().pathSeparator();
+            int pathSeparatorLocation = configPath.lastIndexOf(pathSeparator);
+            if (pathSeparatorLocation == -1) {
+                return this;
+            }
+
+            return new Location(filePath, configPath.substring(0, pathSeparatorLocation));
         }
 
         public Location toAbsolute() {
@@ -376,7 +394,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
         public String toString() {
 
-            return filePath == null?configPath:(filePath + getRoot().options().pathSeparator() + configPath);
+            return filePath == null ? configPath : (filePath + getRoot().options().pathSeparator() + configPath);
         }
     }
 

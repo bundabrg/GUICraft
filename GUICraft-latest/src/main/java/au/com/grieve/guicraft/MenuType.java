@@ -18,12 +18,10 @@
 
 package au.com.grieve.guicraft;
 
-import au.com.grieve.guicraft.exceptions.ActionException;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-/**
- * Provides an interface to a GUICraft Action.
- */
-public interface GUIAction {
-    void execute(Player player, String[] args) throws ActionException;
+public interface MenuType {
+
+    void open(Player player, ConfigurationSection section);
 }

@@ -16,14 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.guicraft;
+package au.com.grieve.guicraft.exceptions;
 
-import au.com.grieve.guicraft.exceptions.ActionException;
-import org.bukkit.entity.Player;
+public class ActionException extends Exception {
 
-/**
- * Provides an interface to a GUICraft Action.
- */
-public interface GUIAction {
-    void execute(Player player, String[] args) throws ActionException;
+    public ActionException(String message) {
+        super(message);
+    }
+
+    public ActionException(String message, Throwable err) {
+        super(message, err);
+    }
 }

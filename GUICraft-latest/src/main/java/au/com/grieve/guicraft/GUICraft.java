@@ -21,15 +21,11 @@ package au.com.grieve.guicraft;
 import au.com.grieve.guicraft.actions.OpenAction;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.guicraft.config.PackageConfiguration;
+import au.com.grieve.guicraft.menu_types.InventoryMenu;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import co.aikar.commands.BukkitCommandManager;
-import co.aikar.commands.CommandCompletions;
-import co.aikar.commands.PaperCommandManager;
 import lombok.Getter;
-import org.bukkit.configuration.ConfigurationSection;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -37,11 +33,17 @@ import java.util.Set;
 
 public class GUICraft extends VersionPlugin {
 
+    @Getter
+    private static GUICraft instance;
+    @Getter
+    PackageConfiguration localConfig;
     // Variables
-    @Getter private BukkitCommandManager commandManager;
-    @Getter private Map<String, GUIAction> actions = new HashMap<>();
-    @Getter private static GUICraft instance;
-    @Getter PackageConfiguration localConfig;
+    @Getter
+    private BukkitCommandManager commandManager;
+    @Getter
+    private Map<String, GUIAction> actions = new HashMap<>();
+    @Getter
+    private Map<String, MenuType> menuTypes = new HashMap<>();
 
     public GUICraft() {
         instance = this;
@@ -63,6 +65,9 @@ public class GUICraft extends VersionPlugin {
         // Register Actions
         registerActions();
 
+        // Register MenuTypes
+        registerMenuTypes();
+
 //        PackageConfiguration config = PackageConfiguration.loadConfiguration(getDataFolder());
 
 
@@ -81,7 +86,6 @@ public class GUICraft extends VersionPlugin {
 //        System.err.println("config.test4.test1: " + localConfig.get("config.test4.test1"));
 
 
-
     }
 
     private void initConfig() {
@@ -93,8 +97,8 @@ public class GUICraft extends VersionPlugin {
         commandManager.enableUnstableAPI("help");
 
         // Replacements
-        commandManager.getCommandReplacements().addReplacement("guicraft","guicraft|gui|gc");
-        commandManager.getCommandReplacements().addReplacement("action","action|a");
+        commandManager.getCommandReplacements().addReplacement("guicraft", "guicraft|gui|gc");
+        commandManager.getCommandReplacements().addReplacement("action", "action|a");
 
         // Tab Completions
         commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> {
@@ -116,7 +120,7 @@ public class GUICraft extends VersionPlugin {
                 }
             }
             return output;
-        } );
+        });
 
     }
 
@@ -126,6 +130,10 @@ public class GUICraft extends VersionPlugin {
 
     private void registerActions() {
         registerAction("open", new OpenAction());
+    }
+
+    private void registerMenuTypes() {
+        registerMenuType("inventory", new InventoryMenu());
     }
 
     /**
@@ -140,6 +148,20 @@ public class GUICraft extends VersionPlugin {
      */
     public void unregisterAction(String name) {
         actions.remove(name);
+    }
+
+    /**
+     * Register a MenuType
+     */
+    public void registerMenuType(String name, MenuType type) {
+        menuTypes.put(name, type);
+    }
+
+    /**
+     * Unregister MenuType
+     */
+    public void unregisterMenuType(String name) {
+        menuTypes.remove(name);
     }
 
 }

@@ -64,6 +64,10 @@
                                     <pattern>au.com.grieve.multi_version_plugin</pattern>
                                     <shadedPattern>au.com.grieve.guicraft.multi_version_plugin</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>co.aikar.commands</pattern>
+                                    <shadedPattern>au.com.grieve.guicraft.acf</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>

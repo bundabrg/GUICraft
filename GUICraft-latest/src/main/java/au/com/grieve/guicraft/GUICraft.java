@@ -18,33 +18,61 @@
 
 package au.com.grieve.guicraft;
 
-import au.com.grieve.guicraft.config.PackageConfiguration;
+import au.com.grieve.guicraft.actions.OpenAction;
+import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
-import org.bukkit.configuration.ConfigurationSection;
+import co.aikar.commands.BukkitCommandManager;
+import co.aikar.commands.CommandCompletions;
+import co.aikar.commands.PaperCommandManager;
+import lombok.Getter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class GUICraft extends VersionPlugin {
 
+    // Variables
+    @Getter private BukkitCommandManager commandManager;
+    @Getter private Map<String, Class<? extends GUIAction>> actions = new HashMap<>();
+
     @Override
     public void onEnable() {
-        PackageConfiguration config = PackageConfiguration.loadConfiguration(getDataFolder());
-//        System.err.println("test1:");System.err.println(config.getString("test1"));
-//        System.err.println("test2.test1: ");System.err.println(config.getString("test2.test1"));
-//        System.err.println("config:test1: ");System.err.println(config.getString("config:test1"));
-//        System.err.println("config:test2.test1: ");System.err.println(config.getString("config:test2.test1"));
-//        System.err.println("config2:test1: ");System.err.println(config.getString("config2:test1"));
-//        System.err.println("config2:test2.test1: ");System.err.println(config.getString("config2:test2.test1"));
-//        System.err.println("dir/config:test1: ");System.err.println(config.getString("dir/config:test1"));
-//        System.err.println("dir/config:test2.test: ");System.err.println(config.getString("dir/config:test2.test1"));
-//
-        System.err.println("config:test3: ");System.err.println(config.getString("config:test3"));
-        System.err.println("config:test4.test1: ");System.err.println(config.getString("config:test4.test1"));
-//        System.err.println("config:test4.test1.test2: ");System.err.println(config.getString("config:test4.test1.test2"));
 
-//        ConfigurationSection section = config.getConfigurationSection("dir/config:");
-//        section = section.getConfigurationSection("../config2:");
-//        System.err.println("test1: " + section.get("test1"));
-//        System.err.println("config2:test1: " + section.get("config2:test1"));
-//        System.err.println("dir/yarn:test2.test1: " + section.get("dir/yarn:test2.test1"));
-//        System.err.println("../config2:test2.test1: " + section.get("../config2:test2.test1"));
+        // Register all Commands
+        registerCommands();
+
+        // Register Actions
+        registerActions();
+    }
+
+    private void registerCommands() {
+        commandManager = new BukkitCommandManager(getPlugin());
+        commandManager.enableUnstableAPI("help");
+
+        commandManager.getCommandReplacements().addReplacement("guicraft","guicraft|gui|gc");
+        commandManager.getCommandReplacements().addReplacement("action","action|a");
+
+        commandManager.registerCommand(new GUICraftCommand());
+        commandManager.obtainRootCommand("guicraft").
+    }
+
+    private void registerActions() {
+        registerAction("open", OpenAction.class);
+    }
+
+    /**
+     * Register a new Action
+     */
+    public void registerAction(String name, Class<? extends GUIAction> clazz) {
+        actions.put(name, clazz);
+
+
+    }
+
+    /**
+     * Unregister an Action
+     */
+    public void unregisterAction(String name) {
+        actions.remove(name);
     }
 }

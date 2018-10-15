@@ -65,3 +65,10 @@ Actions:
     - buysell - Opens a buy/sell page
     - page - Changes page
 
+
+Commands:
+    - /gc action {player} {action} {flags}
+    - /gc action PLAYER open $/default/config:menu.option ->
+
+
+    /default/menus:MainMenu   -> /default/menus/menu:MainMenu

@@ -21,4 +21,12 @@
       <module name="GUICraft-build" target="1.8" />
     </bytecodeTargetLevel>
   </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="GUICraft" options="-parameters" />
+      <module name="GUICraft-bootstrap" options="-parameters" />
+      <module name="GUICraft-latest" options="-parameters" />
+      <module name="GUICraft-parent" options="-parameters" />
+    </option>
+  </component>
 </project>

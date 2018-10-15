@@ -18,6 +18,7 @@
 
 package au.com.grieve.guicraft.config;
 
+import lombok.Getter;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
@@ -203,25 +204,19 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
     @Override
     public Object get(String path, Object def) {
-        char fileSeparator = getRoot().options().fileSeparator();
+        Location location = new Location(path);
 
-        // No filespec so we can just return what we know
-        int fileSeparatorLocation = path.indexOf(fileSeparator);
-        if (fileSeparatorLocation == -1) {
-            return translate(super.get(path, def));
+        if (location.getFilePath() == null) {
+            return translate(super.get(location.toString(), def));
         }
 
         // If not root we pass to root
         if (getRoot() != this) {
-            if (!path.startsWith("/")) {
-                path = getAbsolutePath(path.substring(0, fileSeparatorLocation)) + fileSeparator + path.substring(fileSeparatorLocation + 1);
-            }
-
-            return getRoot().get(path, def);
+            return getRoot().get(location.toAbsolute().toString(), def);
         }
 
         // As root attempt to load
-        String filePath = path.substring(0, fileSeparatorLocation).replaceFirst("^/*", "");
+        String filePath = location.getFilePath().replaceFirst("^/*", "");
         if (!packages.containsKey(filePath)) {
             filePath = "default/" + filePath;
             if (!packages.containsKey(filePath)) {
@@ -229,8 +224,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
             }
         }
 
-        return packages.get(filePath).get(path.substring(fileSeparatorLocation + 1));
-        //       return translate(super.get(path, def));
+        return packages.get(filePath).get(location.getConfigPath());
     }
 
     /**
@@ -241,35 +235,6 @@ public class PackageConfiguration extends MemorySection implements Configuration
             input = translator.translate(this, input);
         }
         return input;
-    }
-
-    /**
-     * Return the absolute path given a possibly relative path
-     */
-    public String getAbsolutePath(String path) {
-        // Already absolute
-        if (path.startsWith("/")) {
-            return path;
-        }
-
-        // Get full path
-        String fullPath = "/" + this.path.substring(0, this.path.lastIndexOf("/")) + "/" + path;
-
-        Deque<String> stack = new ArrayDeque<>();
-        for (String part : fullPath.split("/")) {
-            if (part.equals("..")) {
-                if (!stack.isEmpty()) {
-                    stack.pop();
-                }
-                continue;
-            }
-            stack.push(part);
-        }
-
-        // Generator path
-        StringJoiner result = new StringJoiner("/");
-        stack.descendingIterator().forEachRemaining(p -> result.add(p.toString()));
-        return result.toString();
     }
 
     public ConfigurationSection getConfigurationSection(String path) {
@@ -295,42 +260,81 @@ public class PackageConfiguration extends MemorySection implements Configuration
         return null;
     }
 
-    /**
-     * Return the configuration file based upon a relative or absolute filePat
-     */
-//    public PackageConfiguration getConfigurationFile(String filePath) {
-//        return getRoot().configurationMap.getOrDefault(rootPath.resolve(filePath).toString(), null);
-//    }
-
-//    @Override
-//    public ConfigurationSection createSection(String path) {
-//        throw new UnsupportedOperationException();
-//    }
-
-//    @Override
-//    protected void mapChildrenKeys(Set<String> output, ConfigurationSection section, boolean deep) {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    @Override
-//    protected void mapChildrenValues(Map<String, Object> output, ConfigurationSection section, boolean deep) {
-//        throw new UnsupportedOperationException();
-//    }
-
-//    public static String createPath(ConfigurationSection section, String key, ConfigurationSection relativeTo) {
-//        throw new UnsupportedOperationException();
-//    }
     @Override
     public String toString() {
         Configuration root = getRoot();
         return new StringBuilder()
                 .append(getClass().getSimpleName())
                 .append("[path='")
-                .append(getCurrentPath())
+                .append(new Location(path, getCurrentPath()).toString())
                 .append("', root='")
                 .append(root == null ? null : root.getClass().getSimpleName())
                 .append("']")
                 .toString();
+    }
+
+    public class Location {
+        @Getter
+        private String filePath;
+
+        @Getter
+        private String configPath;
+
+        /**
+         * Create a new location based on a raw string
+         */
+        public Location(String raw) {
+            char fileSeparator = getRoot().options().fileSeparator();
+            int fileSeperatorLocation = raw.indexOf(fileSeparator);
+
+            if (fileSeperatorLocation == -1) {
+                filePath = null;
+                configPath =  raw;
+            } else {
+                filePath = raw.substring(0, fileSeperatorLocation);
+                configPath = raw.substring(fileSeperatorLocation + 1);
+            }
+        }
+
+        public Location(String filePath, String configPath) {
+            this.filePath = filePath;
+            this.configPath = configPath;
+        }
+
+        public Location toAbsolute() {
+            // No filePath? Return existing path
+            if (filePath == null) {
+                return new Location(path, configPath);
+            }
+
+            String fullPath;
+
+            if (filePath.startsWith("/")) {
+                fullPath = filePath;
+            } else {
+                fullPath = "/" + path.substring(0, path.lastIndexOf("/")) + "/" + filePath;
+            }
+
+            Deque<String> stack = new ArrayDeque<>();
+            for (String part : fullPath.split("/")) {
+                if (part.equals("..")) {
+                    if (!stack.isEmpty()) {
+                        stack.pop();
+                    }
+                    continue;
+                }
+                stack.push(part);
+            }
+
+            // Generate path
+            StringJoiner result = new StringJoiner("/");
+            stack.descendingIterator().forEachRemaining(result::add);
+            return new Location(result.toString(), configPath);
+        }
+
+        public String toString() {
+            return filePath == null?configPath:(filePath + ":" + configPath);
+        }
     }
 
 

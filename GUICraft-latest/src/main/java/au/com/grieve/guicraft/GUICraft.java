@@ -31,7 +31,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class GUICraft extends VersionPlugin {
 
@@ -95,7 +97,27 @@ public class GUICraft extends VersionPlugin {
         commandManager.getCommandReplacements().addReplacement("action","action|a");
 
         // Tab Completions
-        commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> localConfig.getKeys(true));
+        commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> {
+            String match = c.getConfig("file");
+            Set<String> output = new LinkedHashSet<>();
+
+            for (Map.Entry<String, PackageConfiguration> entry : localConfig.getPackages().entrySet()) {
+                String path = entry.getKey();
+                if (match != null && !path.endsWith("/" + match)) {
+                    continue;
+                }
+
+                if (path.startsWith("default/")) {
+                    path = path.substring(8);
+                }
+
+                for (String key : entry.getValue().getKeys(false)) {
+                    output.add(path + "." + key);
+                }
+            }
+            return output;
+        } );
+
     }
 
     private void registerCommands() {

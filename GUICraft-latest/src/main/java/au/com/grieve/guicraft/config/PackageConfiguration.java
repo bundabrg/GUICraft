@@ -55,7 +55,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
     private PackageConfigurationOptions options;
 
     // Packages
-    private Map<String, PackageConfiguration> packages;
+    @Getter private Map<String, PackageConfiguration> packages;
     private PackageConfiguration root;
     private String path;
 

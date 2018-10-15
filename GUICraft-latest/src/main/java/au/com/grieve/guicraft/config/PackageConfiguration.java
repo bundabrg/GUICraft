@@ -210,7 +210,15 @@ public class PackageConfiguration extends MemorySection implements Configuration
         Location location = new Location(path);
 
         if (location.getFilePath() == null) {
-            return translate(super.get(location.toString(), def));
+            Object val = super.get(location.toString(), null);
+            if (val instanceof String) {
+                Matcher matcher = Pattern.compile("\\$(?:([^{\\s]+)|(?:\\{)([^\\}]*)(?:}))").matcher((String) val);
+                if (matcher.find()) {
+                    return getLocalRoot().get(matcher.group(1) != null ? matcher.group(1) : matcher.group(2));
+                }
+            }
+
+            return translate(val==null?def:val);
         }
 
         // If not root we pass to root
@@ -240,31 +248,31 @@ public class PackageConfiguration extends MemorySection implements Configuration
         return input;
     }
 
-    public ConfigurationSection getConfigurationSection(String path) {
-        ConfigurationSection result = super.getConfigurationSection(path);
-
-        if (result != null) {
-            return result;
-        }
-
-        // If root, pass to a child
-        if (getRoot() == this) {
-            Location location = new Location(path);
-            ConfigurationSection section = (ConfigurationSection) get(location.filePath, null);
-            return section == null ? null : section.getConfigurationSection(location.configPath);
-        }
-
-        // Else check if its a reference variable
-        Object val = get(path, null);
-        if (val instanceof String) {
-            Matcher matcher = Pattern.compile("\\$(?:([^{\\s]+)|(?:\\{)([^\\}]*)(?:}))").matcher((String) val);
-            if (matcher.find()) {
-                return (ConfigurationSection) getLocalRoot().get(matcher.group(1) != null ? matcher.group(1) : matcher.group(2));
-            }
-        }
-
-        return null;
-    }
+//    public ConfigurationSection getConfigurationSection(String path) {
+//        ConfigurationSection result = super.getConfigurationSection(path);
+//
+//        if (result != null) {
+//            return result;
+//        }
+//
+//        // If root, pass to a child
+//        if (getRoot() == this) {
+//            Location location = new Location(path);
+//            ConfigurationSection section = (ConfigurationSection) get(location.filePath, null);
+//            return section == null ? null : section.getConfigurationSection(location.configPath);
+//        }
+//
+//        // Else check if its a reference variable
+//        Object val = get(path, null);
+//        if (val instanceof String) {
+//            Matcher matcher = Pattern.compile("\\$(?:([^{\\s]+)|(?:\\{)([^\\}]*)(?:}))").matcher((String) val);
+//            if (matcher.find()) {
+//                return (ConfigurationSection) getLocalRoot().get(matcher.group(1) != null ? matcher.group(1) : matcher.group(2));
+//            }
+//        }
+//
+//        return null;
+//    }
 
     @Override
     public Set<String> getKeys(boolean deep) {

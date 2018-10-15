@@ -25,6 +25,7 @@ import au.com.grieve.guicraft.menu_types.InventoryMenu;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import co.aikar.commands.BukkitCommandManager;
 import lombok.Getter;
+import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -68,8 +69,6 @@ public class GUICraft extends VersionPlugin {
         // Register MenuTypes
         registerMenuTypes();
 
-//        PackageConfiguration config = PackageConfiguration.loadConfiguration(getDataFolder());
-
 
 //        System.err.println("config.test1: " + localConfig.get("config.test1"));
 //        System.err.println("config.test2.test1: " + localConfig.get("config.test2.test1"));
@@ -80,9 +79,10 @@ public class GUICraft extends VersionPlugin {
 //        System.err.println("dir/config.test1: " + localConfig.get("dir/config.test1"));
 //        System.err.println("dir/config.test2.test1: " + localConfig.get("dir/config.test2.test1"));
 //        System.err.println("/dir/config.test2.test1: " + localConfig.get("/dir/config.test2.test1"));
-
+//
 //        ConfigurationSection section = localConfig.getConfigurationSection("/dir/config");
 //        System.err.println("../config.test1: " + section.get("../config.test1"));
+//        System.err.println("config.test3: " + localConfig.get("config.test3"));
 //        System.err.println("config.test4.test1: " + localConfig.get("config.test4.test1"));
 
 

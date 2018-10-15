@@ -52,7 +52,7 @@ public class OpenAction implements GUIAction {
 
         @Subcommand("open|o")
         @Description("Execute open action")
-        @CommandCompletion("@players test1|test2")
+        @CommandCompletion("@players @config")
         public void onActionOpen(CommandSender sender, OnlinePlayer player, String config) {
             sender.spigot().sendMessage(new ComponentBuilder("Open Action").create());
         }

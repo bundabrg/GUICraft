@@ -33,7 +33,9 @@ import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -134,7 +136,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
     }
 
     public void load(Path file) throws IOException {
-        load(file, "default");
+        load(file, options().defaultPath());
     }
 
     /**
@@ -199,6 +201,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
     @Override
     public Object get(String path, Object def) {
+
         Location location = new Location(path);
 
         if (location.getFilePath() == null) {
@@ -213,7 +216,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
         // As root attempt to load
         String filePath = location.getFilePath().replaceFirst("^/*", "");
         if (!packages.containsKey(filePath)) {
-            filePath = "default/" + filePath;
+            filePath = options().defaultPath() + options().fileSeparator() + filePath;
             if (!packages.containsKey(filePath)) {
                 return def;
             }
@@ -256,6 +259,35 @@ public class PackageConfiguration extends MemorySection implements Configuration
     }
 
     @Override
+    public Set<String> getKeys(boolean deep) {
+        if (getRoot() != this) {
+            return super.getKeys(deep);
+        }
+
+        Set<String> result = new LinkedHashSet<>();
+        char pathSeparator = options().pathSeparator();
+        String defaultPath = options().defaultPath() + options().fileSeparator();
+
+        for (Map.Entry<String, PackageConfiguration> entry : packages.entrySet()) {
+            String path = entry.getKey();
+
+            // Remove default namespace
+            if (path.startsWith(defaultPath)) {
+                path = path.substring(defaultPath.length());
+            }
+
+            result.add(path);
+            if (deep) {
+                for (String item : entry.getValue().getKeys(true)) {
+                    result.add(path + pathSeparator + item);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    @Override
     public String toString() {
         Configuration root = getRoot();
         return new StringBuilder()
@@ -282,12 +314,13 @@ public class PackageConfiguration extends MemorySection implements Configuration
             char fileSeparator = getRoot().options().fileSeparator();
             char pathSeparator = getRoot().options().pathSeparator();
 
-            // /default/bob.test.123
-            // default/bob.test.123
-            // config
-            // /bob
+            // If we are root, then root raw
+            if (getRoot() == PackageConfiguration.this && !raw.startsWith(String.valueOf(fileSeparator))) {
+                raw = fileSeparator + raw;
+            }
 
             int fileSeparatorLocation = raw.lastIndexOf(fileSeparator);
+
 
             if (fileSeparatorLocation == -1) {
                 filePath = null;

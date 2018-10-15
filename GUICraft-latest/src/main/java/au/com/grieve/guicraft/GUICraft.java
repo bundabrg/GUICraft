@@ -39,6 +39,7 @@ public class GUICraft extends VersionPlugin {
     @Getter private BukkitCommandManager commandManager;
     @Getter private Map<String, GUIAction> actions = new HashMap<>();
     @Getter private static GUICraft instance;
+    @Getter PackageConfiguration localConfig;
 
     public GUICraft() {
         instance = this;
@@ -48,36 +49,56 @@ public class GUICraft extends VersionPlugin {
     @Override
     public void onEnable() {
 
+        // Setup Config
+        initConfig();
+
+        // Setup Command Manager
+        initCommandManager();
+
         // Register all Commands
         registerCommands();
 
         // Register Actions
         registerActions();
 
-        PackageConfiguration config = PackageConfiguration.loadConfiguration(getDataFolder());
-        System.err.println("config.test1: " + config.get("config.test1"));
-        System.err.println("config.test2.test1: " + config.get("config.test2.test1"));
-        System.err.println("config2.test1: " + config.get("config2.test1"));
-        System.err.println("config2.test2.test1: " + config.get("config2.test2.test1"));
-        System.err.println("/config2.test1: " + config.get("/config2.test1"));
-        System.err.println("/config2.test2.test1: " + config.get("/config2.test2.test1"));
-        System.err.println("dir/config.test1: " + config.get("dir/config.test1"));
-        System.err.println("dir/config.test2.test1: " + config.get("dir/config.test2.test1"));
-        System.err.println("/dir/config.test2.test1: " + config.get("/dir/config.test2.test1"));
+//        PackageConfiguration config = PackageConfiguration.loadConfiguration(getDataFolder());
 
-        ConfigurationSection section = config.getConfigurationSection("/dir/config");
-        System.err.println("../config.test1: " + section.get("../config.test1"));
+
+//        System.err.println("config.test1: " + localConfig.get("config.test1"));
+//        System.err.println("config.test2.test1: " + localConfig.get("config.test2.test1"));
+//        System.err.println("config2.test1: " + localConfig.get("config2.test1"));
+//        System.err.println("config2.test2.test1: " + localConfig.get("config2.test2.test1"));
+//        System.err.println("/config2.test1: " + localConfig.get("/config2.test1"));
+//        System.err.println("/config2.test2.test1: " + localConfig.get("/config2.test2.test1"));
+//        System.err.println("dir/config.test1: " + localConfig.get("dir/config.test1"));
+//        System.err.println("dir/config.test2.test1: " + localConfig.get("dir/config.test2.test1"));
+//        System.err.println("/dir/config.test2.test1: " + localConfig.get("/dir/config.test2.test1"));
+
+//        ConfigurationSection section = localConfig.getConfigurationSection("/dir/config");
+//        System.err.println("../config.test1: " + section.get("../config.test1"));
+//        System.err.println("config.test4.test1: " + localConfig.get("config.test4.test1"));
+
 
 
     }
 
-    private void registerCommands() {
+    private void initConfig() {
+        localConfig = PackageConfiguration.loadConfiguration(getDataFolder());
+    }
+
+    private void initCommandManager() {
         commandManager = new BukkitCommandManager(getPlugin());
         commandManager.enableUnstableAPI("help");
 
+        // Replacements
         commandManager.getCommandReplacements().addReplacement("guicraft","guicraft|gui|gc");
         commandManager.getCommandReplacements().addReplacement("action","action|a");
 
+        // Tab Completions
+        commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> localConfig.getKeys(true));
+    }
+
+    private void registerCommands() {
         commandManager.registerCommand(new GUICraftCommand());
     }
 

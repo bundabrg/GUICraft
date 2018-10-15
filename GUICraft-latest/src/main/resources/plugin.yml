@@ -5,12 +5,12 @@ description: Advanced GUI System
 authors:
   - bundabrg
 version: 1.0-preview
-commands:
-  guicraft:
-    description: General GUICraft Command
-    usage: /<command>
-    permission: guicraft.admin
-    aliases: [gc]
+#commands:
+#  guicraft:
+#    description: General GUICraft Command
+#    usage: /<command>
+#    permission: guicraft.admin
+#    aliases: [gc]
 permissions:
   guicraft.admin:
     default: op

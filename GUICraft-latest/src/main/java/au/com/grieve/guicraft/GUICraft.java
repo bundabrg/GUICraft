@@ -20,12 +20,16 @@ package au.com.grieve.guicraft;
 
 import au.com.grieve.guicraft.actions.OpenAction;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
+import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import co.aikar.commands.BukkitCommandManager;
 import co.aikar.commands.CommandCompletions;
 import co.aikar.commands.PaperCommandManager;
 import lombok.Getter;
+import org.bukkit.configuration.ConfigurationSection;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +37,13 @@ public class GUICraft extends VersionPlugin {
 
     // Variables
     @Getter private BukkitCommandManager commandManager;
-    @Getter private Map<String, Class<? extends GUIAction>> actions = new HashMap<>();
+    @Getter private Map<String, GUIAction> actions = new HashMap<>();
+    @Getter private static GUICraft instance;
+
+    public GUICraft() {
+        instance = this;
+    }
+
 
     @Override
     public void onEnable() {
@@ -43,6 +53,22 @@ public class GUICraft extends VersionPlugin {
 
         // Register Actions
         registerActions();
+
+        PackageConfiguration config = PackageConfiguration.loadConfiguration(getDataFolder());
+        System.err.println("config.test1: " + config.get("config.test1"));
+        System.err.println("config.test2.test1: " + config.get("config.test2.test1"));
+        System.err.println("config2.test1: " + config.get("config2.test1"));
+        System.err.println("config2.test2.test1: " + config.get("config2.test2.test1"));
+        System.err.println("/config2.test1: " + config.get("/config2.test1"));
+        System.err.println("/config2.test2.test1: " + config.get("/config2.test2.test1"));
+        System.err.println("dir/config.test1: " + config.get("dir/config.test1"));
+        System.err.println("dir/config.test2.test1: " + config.get("dir/config.test2.test1"));
+        System.err.println("/dir/config.test2.test1: " + config.get("/dir/config.test2.test1"));
+
+        ConfigurationSection section = config.getConfigurationSection("/dir/config");
+        System.err.println("../config.test1: " + section.get("../config.test1"));
+
+
     }
 
     private void registerCommands() {
@@ -53,20 +79,17 @@ public class GUICraft extends VersionPlugin {
         commandManager.getCommandReplacements().addReplacement("action","action|a");
 
         commandManager.registerCommand(new GUICraftCommand());
-        commandManager.obtainRootCommand("guicraft").
     }
 
     private void registerActions() {
-        registerAction("open", OpenAction.class);
+        registerAction("open", new OpenAction());
     }
 
     /**
      * Register a new Action
      */
-    public void registerAction(String name, Class<? extends GUIAction> clazz) {
-        actions.put(name, clazz);
-
-
+    public void registerAction(String name, GUIAction action) {
+        actions.put(name, action);
     }
 
     /**
@@ -75,4 +98,5 @@ public class GUICraft extends VersionPlugin {
     public void unregisterAction(String name) {
         actions.remove(name);
     }
+
 }

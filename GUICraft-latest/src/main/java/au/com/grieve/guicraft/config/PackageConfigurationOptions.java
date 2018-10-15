@@ -25,8 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PackageConfigurationOptions extends ConfigurationOptions {
-    private char fileSeparator = ':';
-    //    private char filePathSeparator = '/';
+    private char fileSeparator = '/';
     private List<ConfigurationTranslator> translators = new ArrayList<>();
     private String defaultPath = "config";
 
@@ -47,15 +46,6 @@ public class PackageConfigurationOptions extends ConfigurationOptions {
         this.fileSeparator = value;
         return this;
     }
-
-//    public char filePathSeparator() {
-//        return filePathSeparator;
-//    }
-//
-//    public PackageConfiguration filePathSeparator(char value) {
-//        this.filePathSeparator = value;
-//        return this;
-//    }
 
     public PackageConfigurationOptions registerTranslator(ConfigurationTranslator translator) {
         translators.add(translator);

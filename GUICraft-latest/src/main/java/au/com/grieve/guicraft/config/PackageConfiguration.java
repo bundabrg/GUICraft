@@ -197,11 +197,6 @@ public class PackageConfiguration extends MemorySection implements Configuration
         }
     }
 
-//    @Override
-//    public void set(String path, Object value) {
-//        throw new UnsupportedOperationException();
-//    }
-
     @Override
     public Object get(String path, Object def) {
         Location location = new Location(path);
@@ -285,14 +280,27 @@ public class PackageConfiguration extends MemorySection implements Configuration
          */
         public Location(String raw) {
             char fileSeparator = getRoot().options().fileSeparator();
-            int fileSeperatorLocation = raw.indexOf(fileSeparator);
+            char pathSeparator = getRoot().options().pathSeparator();
 
-            if (fileSeperatorLocation == -1) {
+            // /default/bob.test.123
+            // default/bob.test.123
+            // config
+            // /bob
+
+            int fileSeparatorLocation = raw.lastIndexOf(fileSeparator);
+
+            if (fileSeparatorLocation == -1) {
                 filePath = null;
                 configPath =  raw;
             } else {
-                filePath = raw.substring(0, fileSeperatorLocation);
-                configPath = raw.substring(fileSeperatorLocation + 1);
+                int pathSeparatorLocation = raw.substring(fileSeparatorLocation+1).indexOf(pathSeparator);
+                if (pathSeparatorLocation == -1) {
+                    filePath = raw;
+                    configPath = null;
+                } else {
+                    filePath = raw.substring(0, fileSeparatorLocation + 1 + pathSeparatorLocation);
+                    configPath = raw.substring(fileSeparatorLocation + 1 + pathSeparatorLocation + 1);
+                }
             }
         }
 
@@ -308,15 +316,16 @@ public class PackageConfiguration extends MemorySection implements Configuration
             }
 
             String fullPath;
+            char fileSeparator = getRoot().options().fileSeparator();
 
-            if (filePath.startsWith("/")) {
+            if (filePath.startsWith(String.valueOf(fileSeparator))) {
                 fullPath = filePath;
             } else {
-                fullPath = "/" + path.substring(0, path.lastIndexOf("/")) + "/" + filePath;
+                fullPath = fileSeparator + path.substring(0, path.lastIndexOf(fileSeparator)) + fileSeparator + filePath;
             }
 
             Deque<String> stack = new ArrayDeque<>();
-            for (String part : fullPath.split("/")) {
+            for (String part : fullPath.split(String.valueOf(fileSeparator))) {
                 if (part.equals("..")) {
                     if (!stack.isEmpty()) {
                         stack.pop();
@@ -327,13 +336,14 @@ public class PackageConfiguration extends MemorySection implements Configuration
             }
 
             // Generate path
-            StringJoiner result = new StringJoiner("/");
+            StringJoiner result = new StringJoiner(String.valueOf(fileSeparator));
             stack.descendingIterator().forEachRemaining(result::add);
             return new Location(result.toString(), configPath);
         }
 
         public String toString() {
-            return filePath == null?configPath:(filePath + ":" + configPath);
+
+            return filePath == null?configPath:(filePath + getRoot().options().pathSeparator() + configPath);
         }
     }
 

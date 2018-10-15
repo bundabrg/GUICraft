@@ -13,7 +13,6 @@
         <sourceOutputDir name="../target/generated-sources/annotations" />
         <sourceTestOutputDir name="../target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="GUICraft" />
         <module name="GUICraft (1)" />
       </profile>
     </annotationProcessing>
@@ -24,6 +23,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="GUICraft" options="-parameters" />
+      <module name="GUICraft (1)" options="-parameters" />
       <module name="GUICraft-bootstrap" options="-parameters" />
       <module name="GUICraft-latest" options="-parameters" />
       <module name="GUICraft-parent" options="-parameters" />

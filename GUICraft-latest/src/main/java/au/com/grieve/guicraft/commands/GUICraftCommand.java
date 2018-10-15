@@ -34,7 +34,7 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-@CommandAlias("guicraft|gui|gc")
+@CommandAlias("%guicraft")
 public class GUICraftCommand extends BaseCommand {
 
     @HelpCommand
@@ -47,7 +47,7 @@ public class GUICraftCommand extends BaseCommand {
                 .append(" - Run a GUICraft action").color(ChatColor.GRAY).create());
     }
 
-    @Subcommand("action|a")
+    @Subcommand("%action")
     public class ActionSubCommand extends BaseCommand {
 
         @Description("Execute an action")

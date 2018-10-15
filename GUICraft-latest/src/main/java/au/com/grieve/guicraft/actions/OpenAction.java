@@ -19,7 +19,9 @@
 package au.com.grieve.guicraft.actions;
 
 import au.com.grieve.guicraft.GUIAction;
+import au.com.grieve.guicraft.GUICraft;
 import co.aikar.commands.BaseCommand;
+import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandCompletion;
 import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Subcommand;
@@ -36,15 +38,18 @@ import java.util.List;
  */
 public class OpenAction implements GUIAction {
 
-    public OpenAction(Player player, String parameters) {
-
+    public OpenAction() {
+        GUICraft.getInstance().getCommandManager().registerCommand(new Command());
     }
 
     public static List<String> tabCompletion() {
         return Arrays.asList("foo", "bar", "baz");
     }
 
+    @CommandAlias("%guicraft")
+    @Subcommand("%action")
     public static class Command extends BaseCommand {
+
         @Subcommand("open|o")
         @Description("Execute open action")
         @CommandCompletion("@players test1|test2")

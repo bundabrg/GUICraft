@@ -296,7 +296,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
                 int pathSeparatorLocation = raw.substring(fileSeparatorLocation+1).indexOf(pathSeparator);
                 if (pathSeparatorLocation == -1) {
                     filePath = raw;
-                    configPath = null;
+                    configPath = "";
                 } else {
                     filePath = raw.substring(0, fileSeparatorLocation + 1 + pathSeparatorLocation);
                     configPath = raw.substring(fileSeparatorLocation + 1 + pathSeparatorLocation + 1);

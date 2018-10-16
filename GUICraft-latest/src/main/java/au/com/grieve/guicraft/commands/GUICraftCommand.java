@@ -47,6 +47,13 @@ public class GUICraftCommand extends BaseCommand {
                 .append(" - Run a GUICraft action").color(ChatColor.GRAY).create());
     }
 
+    @Subcommand("item|i")
+    @Description("Save item to config file") dir.bob
+    public void onItem(CommandSender sender, String pkg) {
+
+    }
+
+
     @Subcommand("%action")
     public class ActionSubCommand extends BaseCommand {
 
@@ -57,5 +64,4 @@ public class GUICraftCommand extends BaseCommand {
         }
 
     }
-
 }

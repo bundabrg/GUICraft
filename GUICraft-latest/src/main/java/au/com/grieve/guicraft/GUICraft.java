@@ -21,6 +21,7 @@ package au.com.grieve.guicraft;
 import au.com.grieve.guicraft.actions.OpenAction;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.guicraft.config.PackageConfiguration;
+import au.com.grieve.guicraft.config.PackageVariable;
 import au.com.grieve.guicraft.menu_types.InventoryMenu;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import co.aikar.commands.BukkitCommandManager;
@@ -38,6 +39,8 @@ public class GUICraft extends VersionPlugin {
     private static GUICraft instance;
     @Getter
     PackageConfiguration localConfig;
+    @Getter
+    PackageVariable packageVariable;
     // Variables
     @Getter
     private BukkitCommandManager commandManager;
@@ -70,26 +73,27 @@ public class GUICraft extends VersionPlugin {
         registerMenuTypes();
 
 
-//        System.err.println("config.test1: " + localConfig.get("config.test1"));
-//        System.err.println("config.test2.test1: " + localConfig.get("config.test2.test1"));
-//        System.err.println("config2.test1: " + localConfig.get("config2.test1"));
-//        System.err.println("config2.test2.test1: " + localConfig.get("config2.test2.test1"));
-//        System.err.println("/config2.test1: " + localConfig.get("/config2.test1"));
-//        System.err.println("/config2.test2.test1: " + localConfig.get("/config2.test2.test1"));
-//        System.err.println("dir/config.test1: " + localConfig.get("dir/config.test1"));
-//        System.err.println("dir/config.test2.test1: " + localConfig.get("dir/config.test2.test1"));
-//        System.err.println("/dir/config.test2.test1: " + localConfig.get("/dir/config.test2.test1"));
-//
-//        ConfigurationSection section = localConfig.getConfigurationSection("/dir/config");
-//        System.err.println("../config.test1: " + section.get("../config.test1"));
-//        System.err.println("config.test3: " + localConfig.get("config.test3"));
-//        System.err.println("config.test4.test1: " + localConfig.get("config.test4.test1"));
+        System.err.println("config.test1: " + localConfig.get("config.test1"));
+        System.err.println("config.test2.test1: " + localConfig.get("config.test2.test1"));
+        System.err.println("config2.test1: " + localConfig.get("config2.test1"));
+        System.err.println("config2.test2.test1: " + localConfig.get("config2.test2.test1"));
+        System.err.println("/config2.test1: " + localConfig.get("/config2.test1"));
+        System.err.println("/config2.test2.test1: " + localConfig.get("/config2.test2.test1"));
+        System.err.println("dir/config.test1: " + localConfig.get("dir/config.test1"));
+        System.err.println("dir/config.test2.test1: " + localConfig.get("dir/config.test2.test1"));
+        System.err.println("/dir/config.test2.test1: " + localConfig.get("/dir/config.test2.test1"));
+
+        ConfigurationSection section = localConfig.getConfigurationSection("/dir/config");
+        System.err.println("../config.test1: " + section.get("../config.test1"));
+        System.err.println("config.test3: " + localConfig.get("config.test3"));
+        System.err.println("config.test4.test1: " + localConfig.get("config.test4.test1"));
 
 
     }
 
     private void initConfig() {
         localConfig = PackageConfiguration.loadConfiguration(getDataFolder());
+        packageVariable = new PackageVariable(localConfig);
     }
 
     private void initCommandManager() {
@@ -102,14 +106,32 @@ public class GUICraft extends VersionPlugin {
 
         // Tab Completions
         commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> {
-            String match = c.getConfig("file");
+            String file = c.getConfig("file");
+            String path = c.getConfig("path");
+
             Set<String> output = new LinkedHashSet<>();
-            for (PackageConfiguration.ConfigVariable variable : localConfig.getVariables(match)) {
+            for (PackageVariable.Variable variable : packageVariable.getVariables(file, path)) {
+                System.err.println("Var: " + variable.toString() + " - " + variable.toPath());
                 output.add(variable.toString());
             }
             return output;
-
         });
+//        commandManager.getCommandCompletions().registerAsyncCompletion("package", c -> {
+//            String match = c.getConfig("file");
+//            String append = c.getConfig("append");
+//            Set<String> output = new LinkedHashSet<>();
+//            for (String name : localConfig.getPackages().keySet()) {
+//                System.err.println(name);
+//
+//                PackageConfiguration.Location location = localConfig.new Location(name);
+//                if (match != null && !location.file().equals(match)) {
+//                    continue;
+//                }
+//                output.add(location.removeDefault().directory());
+//            }
+//            return output;
+//
+//        });
 
     }
 

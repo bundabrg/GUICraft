@@ -25,6 +25,7 @@ import co.aikar.commands.annotation.CommandCompletion;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.HelpCommand;
+import co.aikar.commands.annotation.Optional;
 import co.aikar.commands.annotation.Subcommand;
 import co.aikar.commands.contexts.OnlinePlayer;
 import net.md_5.bungee.api.ChatColor;
@@ -48,8 +49,10 @@ public class GUICraftCommand extends BaseCommand {
     }
 
     @Subcommand("item|i")
-    @Description("Save item to config file") dir.bob
-    public void onItem(CommandSender sender, String pkg) {
+    @Description("Save item to config file")
+    @CommandCompletion("@nothing @package:file=item")
+    public void onItem(CommandSender sender, String name, @Optional String pkg) {
+
 
     }
 

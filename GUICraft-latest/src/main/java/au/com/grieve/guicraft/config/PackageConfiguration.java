@@ -58,7 +58,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
     @Getter
     private Map<String, PackageConfiguration> packages;
     private PackageConfiguration root;
-    private String path;
+    private String directory;
 
 
     //
@@ -71,17 +71,17 @@ public class PackageConfiguration extends MemorySection implements Configuration
     public PackageConfiguration() {
         super();
         packages = new HashMap<>();
-        path = "";
+        directory = "";
     }
 
     /**
      * Create a new ConfigurationPackage
      */
-    public PackageConfiguration(PackageConfiguration root, Configuration config, String path) {
+    public PackageConfiguration(PackageConfiguration root, Configuration config, String directory) {
         super();
         copySection(config, this);
         this.root = root;
-        this.path = path;
+        this.directory = directory;
     }
 
     public static PackageConfiguration loadConfiguration(File path) {
@@ -141,16 +141,16 @@ public class PackageConfiguration extends MemorySection implements Configuration
     }
 
     /**
-     * Load config from a file or directory. Their paths will be appended to the provided path
+     * Load config from a file or directory. Their paths will be appended to the provided directory
      */
-    public void load(Path file, String path) throws IOException {
+    public void load(Path file, String directory) throws IOException {
         // Make sure we are root
         if (getRoot() != this) {
             throw new IOException("Can only load on root object");
         }
 
-        Validate.notNull(path, "Path cannot be null");
-        Validate.notEmpty(path, "Path cannot be empty");
+        Validate.notNull(directory, "Directory cannot be null");
+        Validate.notEmpty(directory, "Directory cannot be empty");
         Validate.notNull(file, "File cannot be null");
 
         // For directories we walk over it and recurse
@@ -161,7 +161,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
                     .forEach(p -> {
                         try {
                             String relativePath = file.relativize(p).toString();
-                            load(p, path + "/" + relativePath.substring(0, relativePath.length() - 4));
+                            load(p, directory + "/" + relativePath.substring(0, relativePath.length() - 4));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -175,7 +175,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
         // Load config
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file.toFile());
-        String realPath = path.replaceFirst("^/*", "");
+        String realPath = directory.replaceFirst("^/*", "");
         packages.put(realPath, new PackageConfiguration(this, config, realPath));
     }
 
@@ -248,32 +248,6 @@ public class PackageConfiguration extends MemorySection implements Configuration
         return input;
     }
 
-//    public ConfigurationSection getConfigurationSection(String path) {
-//        ConfigurationSection result = super.getConfigurationSection(path);
-//
-//        if (result != null) {
-//            return result;
-//        }
-//
-//        // If root, pass to a child
-//        if (getRoot() == this) {
-//            Location location = new Location(path);
-//            ConfigurationSection section = (ConfigurationSection) get(location.filePath, null);
-//            return section == null ? null : section.getConfigurationSection(location.configPath);
-//        }
-//
-//        // Else check if its a reference variable
-//        Object val = get(path, null);
-//        if (val instanceof String) {
-//            Matcher matcher = Pattern.compile("\\$(?:([^{\\s]+)|(?:\\{)([^\\}]*)(?:}))").matcher((String) val);
-//            if (matcher.find()) {
-//                return (ConfigurationSection) getLocalRoot().get(matcher.group(1) != null ? matcher.group(1) : matcher.group(2));
-//            }
-//        }
-//
-//        return null;
-//    }
-
     @Override
     public Set<String> getKeys(boolean deep) {
         if (getRoot() != this) {
@@ -304,208 +278,135 @@ public class PackageConfiguration extends MemorySection implements Configuration
     }
 
     /**
-     * Return all the variables for all packages found at the location offset.
-     *
-     * For example if location is:
-     *   menu.option.my
-     *
-     * Then all files called "menu" in every package that contain the path "option.my" will list the keys
-     * and return this as a ConfigVariable
+     * Return the location of the current directory
      */
-    public Set<ConfigVariable> getVariables(String location) {
-        char pathSeparator = getRoot().options().pathSeparator();
-        int pathSeparatorLocation = location.indexOf(pathSeparator);
+    public Location getLocation() {
+        String path = getCurrentPath()
 
-        String locationFile;
-        String locationPath;
-
-        if (pathSeparatorLocation == -1) {
-            locationFile = location;
-            locationPath = "";
-        } else {
-            locationFile = location.substring(0, pathSeparatorLocation);
-            locationPath = location.substring(pathSeparatorLocation);
-        }
-
-        Set<ConfigVariable> output = new LinkedHashSet<>();
-        for (Map.Entry<String, PackageConfiguration> entry : packages.entrySet()) {
-            Location path = new Location(entry.getKey()).removeDefault();
-
-            if (!path.file().equals(locationFile)) {
-                continue;
-            }
-
-            ConfigurationSection section = entry.getValue().getConfigurationSection(locationPath);
-            if (section == null) {
-                continue;
-            }
-
-            for (String key : section.getKeys(false)) {
-                ConfigVariable c = new ConfigVariable(path.directory().substring(1), location, key);
-                output.add(c);
-            }
-
-        }
-        return output;
+        return new Location(directory + (path.length() > 0?getRoot().options().pathSeparator() + path:""));
     }
+
+
+
 
     @Override
     public String toString() {
         Configuration root = getRoot();
         return new StringBuilder()
                 .append(getClass().getSimpleName())
-                .append("[path='")
-                .append(new Location(path, getCurrentPath()).toString())
+                .append("[directory='")
+                .append(getLocation().toString())
                 .append("', root='")
                 .append(root == null ? null : root.getClass().getSimpleName())
                 .append("']")
                 .toString();
     }
 
-    /**
-     * Convenience class to provide a variable in the root of a config file
-     */
-    public class ConfigVariable {
-
-        private String path;
-        private String location;
-        private String key;
-
-        public ConfigVariable(String path, String location, String key) {
-            this.path = path.replace(getRoot().options().fileSeparator(), getRoot().options().variableSeparator());
-            this.location = location.replace(getRoot().options().pathSeparator(), getRoot().options().variableSeparator());
-            this.key = key;
-        }
-
-        public ConfigVariable(String raw, String location) {
-            this.location = location;
-
-            char variableSeparator = getRoot().options().variableSeparator();
-            int variableSeparatorLocation = raw.lastIndexOf(variableSeparator);
-
-            if (variableSeparatorLocation == -1) {
-                this.path = "";
-                this.key = raw;
-            } else {
-                this.path = raw.substring(0, variableSeparatorLocation);
-                this.key = raw.substring(variableSeparatorLocation + 1);
-            }
-
-        }
-
-
-
-        public String toString() {
-            return (this.path.length() == 0?"":this.path + options().variableSeparator()) + this.key;
-        }
-
-        public Location toLocation() {
-            PackageConfigurationOptions options = getRoot().options();
-
-            return new Location(path.replace(options.variableSeparator(), options.fileSeparator())
-                    + options.fileSeparator()
-                    + location.replace(options.variableSeparator(), options.pathSeparator())
-                    + options.pathSeparator()
-                    + key
-                    );
-        }
-
-
-    }
-
     public class Location {
-        @Getter
-        private String filePath;
 
         @Getter
-        private String configPath;
+        private final String directory;
+
+        @Getter
+        private final String file;
+
+        @Getter
+        private final String path;
 
         /**
          * Create a new location based on a raw string
+         *
+         * Format:
+         *   [/dir/dir/][file[.path.path]]
          */
         public Location(String raw) {
-            char fileSeparator = getRoot().options().fileSeparator();
-            char pathSeparator = getRoot().options().pathSeparator();
-
-            // If we are root, then root raw
-            if (getRoot() == PackageConfiguration.this && !raw.startsWith(String.valueOf(fileSeparator))) {
-                raw = fileSeparator + raw;
-            }
-
-            int fileSeparatorLocation = raw.lastIndexOf(fileSeparator);
-
-
-            if (fileSeparatorLocation == -1) {
-                filePath = null;
-                configPath = raw;
-            } else {
-                int pathSeparatorLocation = raw.substring(fileSeparatorLocation + 1).indexOf(pathSeparator);
-                if (pathSeparatorLocation == -1) {
-                    filePath = raw;
-                    configPath = "";
-                } else {
-                    filePath = raw.substring(0, fileSeparatorLocation + 1 + pathSeparatorLocation);
-                    configPath = raw.substring(fileSeparatorLocation + 1 + pathSeparatorLocation + 1);
-                }
-            }
+            String[] data = splitRaw(raw);
+            directory = data[0];
+            file = data[0];
+            path = data[1];
         }
 
-        public Location(String filePath, String configPath) {
-            this.filePath = filePath;
-            this.configPath = configPath;
-        }
-
-        public Location configParent() {
-            char pathSeparator = getRoot().options().pathSeparator();
-            int pathSeparatorLocation = configPath.lastIndexOf(pathSeparator);
-            if (pathSeparatorLocation == -1) {
-                return this;
-            }
-
-            return new Location(filePath, configPath.substring(0, pathSeparatorLocation));
+        private Location(String directory, String file, String path) {
+            this.directory = directory;
+            this.file = file;
+            this.path = path;
         }
 
         public Location removeDefault() {
-            if (filePath != null) {
-                String defaultPath = getRoot().options().fileSeparator() + getRoot().options().defaultPath();
-                if (filePath.startsWith(defaultPath)) {
-                    return new Location(filePath.substring(defaultPath.length()));
-                }
+            String defaultPath = getRoot().options().defaultPath() + getRoot().options().fileSeparator();
+            if (directory.startsWith(defaultPath)) {
+                return new Location(directory.substring(defaultPath.length()), file, path);
             }
-
             return this;
         }
 
-        public String file() {
-            if (filePath == null) {
-                return "";
+        public Location resolve(String raw) {
+            String[] data = splitRaw(raw);
+            PackageConfigurationOptions options = getRoot().options();
+
+            if (data[0].length() > 0) {
+
+                // Absolute directory?
+                if (data[0].startsWith(String.valueOf(options.fileSeparator()))) {
+                    return new Location(data[0], data[1], data[2]);
+                }
+
+                // Get Relative directory
+                String resolveDirectory = directory + options.fileSeparator() + data[0];
+
+                Deque<String> stack = new ArrayDeque<>();
+                for (String part : fullPath.split(String.valueOf(fileSeparator))) {
+                    if (part.equals("..")) {
+                        if (!stack.isEmpty()) {
+                            stack.pop();
+                        }
+                        continue;
+                    }
+                    stack.push(part);
+                }
+
+                // Generate directory
+                StringJoiner result = new StringJoiner(String.valueOf(fileSeparator));
+                stack.descendingIterator().forEachRemaining(result::add);
             }
 
-            int fileSeparatorLocation = filePath.lastIndexOf(getRoot().options().fileSeparator());
-            if (fileSeparatorLocation == -1) {
-                return "";
-            }
 
-            return filePath.substring(fileSeparatorLocation + 1);
         }
 
-        public String directory() {
-            if (filePath == null) {
-                return "";
-            }
+        private String[] splitRaw(String raw) {
+            Validate.notNull(raw);
+            char fileSeparator = getRoot().options().fileSeparator();
+            char pathSeparator = getRoot().options().pathSeparator();
+            String resolveDirectory;
+            String resolveFile;
+            String resolvePath;
 
-            int fileSeparatorLocation = filePath.lastIndexOf(getRoot().options().fileSeparator());
+            int fileSeparatorLocation = raw.lastIndexOf(fileSeparator);
+
             if (fileSeparatorLocation == -1) {
-                return "";
+                resolveDirectory = "";
+            } else {
+                resolveDirectory = raw.substring(0, fileSeparatorLocation);
+                raw = raw.substring(fileSeparatorLocation + 1);
             }
 
-            return filePath.substring(0, fileSeparatorLocation==0?1:fileSeparatorLocation);
+            int pathSeparatorLocation = raw.indexOf(pathSeparator);
+
+            if (pathSeparatorLocation == -1) {
+                resolveFile = raw;
+                resolvePath = "";
+            } else {
+                resolveFile = raw.substring(0, pathSeparatorLocation);
+                resolvePath = raw.substring(pathSeparatorLocation + 1);
+            }
+
+            return new String[]{resolveDirectory, resolveFile, resolvePath};
         }
 
         public Location toAbsolute() {
-            // No filePath? Return existing path
+            // No filePath? Return existing directory
             if (filePath == null) {
-                return new Location(path, configPath);
+                return new Location(directory, configPath);
             }
 
             String fullPath;
@@ -514,7 +415,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
             if (filePath.startsWith(String.valueOf(fileSeparator))) {
                 fullPath = filePath;
             } else {
-                fullPath = fileSeparator + path.substring(0, path.lastIndexOf(fileSeparator)) + fileSeparator + filePath;
+                fullPath = fileSeparator + directory.substring(0, directory.lastIndexOf(fileSeparator)) + fileSeparator + filePath;
             }
 
             Deque<String> stack = new ArrayDeque<>();
@@ -528,7 +429,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
                 stack.push(part);
             }
 
-            // Generate path
+            // Generate directory
             StringJoiner result = new StringJoiner(String.valueOf(fileSeparator));
             stack.descendingIterator().forEachRemaining(result::add);
             return new Location(result.toString(), configPath);

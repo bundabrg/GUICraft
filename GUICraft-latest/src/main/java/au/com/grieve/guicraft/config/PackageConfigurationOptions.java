@@ -26,6 +26,7 @@ import java.util.List;
 
 public class PackageConfigurationOptions extends ConfigurationOptions {
     private char fileSeparator = '/';
+    private char variableSeparator = '.';
     private List<ConfigurationTranslator> translators = new ArrayList<>();
     private String defaultPath = "default";
 
@@ -67,6 +68,15 @@ public class PackageConfigurationOptions extends ConfigurationOptions {
 
     public PackageConfigurationOptions defaultPath(String path) {
         this.defaultPath = path;
+        return this;
+    }
+
+    public char variableSeparator() {
+        return this.variableSeparator;
+    }
+
+    public PackageConfigurationOptions variableSeparator(char value) {
+        this.variableSeparator = value;
         return this;
     }
 

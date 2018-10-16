@@ -21,6 +21,7 @@ package au.com.grieve.guicraft.actions;
 import au.com.grieve.guicraft.GUIAction;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.MenuType;
+import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.exceptions.ActionException;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
@@ -55,8 +56,11 @@ public class OpenAction implements GUIAction {
             throw new ActionException("Not enough arguments");
         }
 
+        // Get Variable
+        PackageConfiguration.ConfigVariable variable = GUICraft.getInstance().getLocalConfig().new ConfigVariable(args[0], "menu");
+
         // Load config section
-        ConfigurationSection section = GUICraft.getInstance().getLocalConfig().getConfigurationSection(args[0]);
+        ConfigurationSection section = GUICraft.getInstance().getLocalConfig().getConfigurationSection(variable.toLocation().toString());
 
         if (section == null) {
             throw new ActionException("Invalid menu: " + args[0]);

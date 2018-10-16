@@ -303,6 +303,52 @@ public class PackageConfiguration extends MemorySection implements Configuration
         return result;
     }
 
+    /**
+     * Return all the variables for all packages found at the location offset.
+     *
+     * For example if location is:
+     *   menu.option.my
+     *
+     * Then all files called "menu" in every package that contain the path "option.my" will list the keys
+     * and return this as a ConfigVariable
+     */
+    public Set<ConfigVariable> getVariables(String location) {
+        char pathSeparator = getRoot().options().pathSeparator();
+        int pathSeparatorLocation = location.indexOf(pathSeparator);
+
+        String locationFile;
+        String locationPath;
+
+        if (pathSeparatorLocation == -1) {
+            locationFile = location;
+            locationPath = "";
+        } else {
+            locationFile = location.substring(0, pathSeparatorLocation);
+            locationPath = location.substring(pathSeparatorLocation);
+        }
+
+        Set<ConfigVariable> output = new LinkedHashSet<>();
+        for (Map.Entry<String, PackageConfiguration> entry : packages.entrySet()) {
+            Location path = new Location(entry.getKey()).removeDefault();
+
+            if (!path.file().equals(locationFile)) {
+                continue;
+            }
+
+            ConfigurationSection section = entry.getValue().getConfigurationSection(locationPath);
+            if (section == null) {
+                continue;
+            }
+
+            for (String key : section.getKeys(false)) {
+                ConfigVariable c = new ConfigVariable(path.directory().substring(1), location, key);
+                output.add(c);
+            }
+
+        }
+        return output;
+    }
+
     @Override
     public String toString() {
         Configuration root = getRoot();
@@ -314,6 +360,57 @@ public class PackageConfiguration extends MemorySection implements Configuration
                 .append(root == null ? null : root.getClass().getSimpleName())
                 .append("']")
                 .toString();
+    }
+
+    /**
+     * Convenience class to provide a variable in the root of a config file
+     */
+    public class ConfigVariable {
+
+        private String path;
+        private String location;
+        private String key;
+
+        public ConfigVariable(String path, String location, String key) {
+            this.path = path.replace(getRoot().options().fileSeparator(), getRoot().options().variableSeparator());
+            this.location = location.replace(getRoot().options().pathSeparator(), getRoot().options().variableSeparator());
+            this.key = key;
+        }
+
+        public ConfigVariable(String raw, String location) {
+            this.location = location;
+
+            char variableSeparator = getRoot().options().variableSeparator();
+            int variableSeparatorLocation = raw.lastIndexOf(variableSeparator);
+
+            if (variableSeparatorLocation == -1) {
+                this.path = "";
+                this.key = raw;
+            } else {
+                this.path = raw.substring(0, variableSeparatorLocation);
+                this.key = raw.substring(variableSeparatorLocation + 1);
+            }
+
+        }
+
+
+
+        public String toString() {
+            return (this.path.length() == 0?"":this.path + options().variableSeparator()) + this.key;
+        }
+
+        public Location toLocation() {
+            PackageConfigurationOptions options = getRoot().options();
+
+            return new Location(path.replace(options.variableSeparator(), options.fileSeparator())
+                    + options.fileSeparator()
+                    + location.replace(options.variableSeparator(), options.pathSeparator())
+                    + options.pathSeparator()
+                    + key
+                    );
+        }
+
+
     }
 
     public class Location {
@@ -368,6 +465,43 @@ public class PackageConfiguration extends MemorySection implements Configuration
             return new Location(filePath, configPath.substring(0, pathSeparatorLocation));
         }
 
+        public Location removeDefault() {
+            if (filePath != null) {
+                String defaultPath = getRoot().options().fileSeparator() + getRoot().options().defaultPath();
+                if (filePath.startsWith(defaultPath)) {
+                    return new Location(filePath.substring(defaultPath.length()));
+                }
+            }
+
+            return this;
+        }
+
+        public String file() {
+            if (filePath == null) {
+                return "";
+            }
+
+            int fileSeparatorLocation = filePath.lastIndexOf(getRoot().options().fileSeparator());
+            if (fileSeparatorLocation == -1) {
+                return "";
+            }
+
+            return filePath.substring(fileSeparatorLocation + 1);
+        }
+
+        public String directory() {
+            if (filePath == null) {
+                return "";
+            }
+
+            int fileSeparatorLocation = filePath.lastIndexOf(getRoot().options().fileSeparator());
+            if (fileSeparatorLocation == -1) {
+                return "";
+            }
+
+            return filePath.substring(0, fileSeparatorLocation==0?1:fileSeparatorLocation);
+        }
+
         public Location toAbsolute() {
             // No filePath? Return existing path
             if (filePath == null) {
@@ -400,9 +534,13 @@ public class PackageConfiguration extends MemorySection implements Configuration
             return new Location(result.toString(), configPath);
         }
 
+        public boolean startsWith(String string) {
+            return toString().startsWith(string);
+        }
+
         public String toString() {
 
-            return filePath == null ? configPath : (filePath + getRoot().options().pathSeparator() + configPath);
+            return filePath == null ? configPath : (filePath + (configPath == ""?"":getRoot().options().pathSeparator() + configPath));
         }
     }
 

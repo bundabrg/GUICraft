@@ -104,22 +104,11 @@ public class GUICraft extends VersionPlugin {
         commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> {
             String match = c.getConfig("file");
             Set<String> output = new LinkedHashSet<>();
-
-            for (Map.Entry<String, PackageConfiguration> entry : localConfig.getPackages().entrySet()) {
-                String path = entry.getKey();
-                if (match != null && !path.endsWith("/" + match)) {
-                    continue;
-                }
-
-                if (path.startsWith("default/")) {
-                    path = path.substring(8);
-                }
-
-                for (String key : entry.getValue().getKeys(false)) {
-                    output.add(path + "." + key);
-                }
+            for (PackageConfiguration.ConfigVariable variable : localConfig.getVariables(match)) {
+                output.add(variable.toString());
             }
             return output;
+
         });
 
     }

@@ -42,11 +42,11 @@ public class PackageVariable {
 
         Set<Variable> output = new LinkedHashSet<>();
         for (Map.Entry<String, PackageConfiguration> entry : config.getPackages().entrySet()) {
-            PackageConfiguration.Location location = entry.getValue().getLocation().removeDefault();
-            System.err.println("Loc:" + location.toString() + ", " + location.toAbsolute().toString());
+            PackageConfiguration.Location location = entry.getValue().getLocation();
+            System.err.println("Loc:" + location.toString());
 
             // Check if filename matches
-            if (filename != null && !location.file().equals(filename)) {
+            if (filename != null && !location.getFile().equals(filename)) {
                 continue;
             }
 
@@ -56,7 +56,7 @@ public class PackageVariable {
                 continue;
             }
 
-            String variableDir = location.directory().substring(1).replace(config.options().fileSeparator(), '.');
+            String variableDir = location.getDirectory().replace(config.options().fileSeparator(), '.');
             if (variableDir.length() > 0) {
                 variableDir += ".";
             }

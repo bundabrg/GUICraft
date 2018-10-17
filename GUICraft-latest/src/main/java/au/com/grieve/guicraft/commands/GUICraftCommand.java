@@ -32,6 +32,8 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.yaml.snakeyaml.Yaml;
 
 import java.util.List;
 
@@ -46,25 +48,5 @@ public class GUICraftCommand extends BaseCommand {
                 .append(" - Show help about command").color(ChatColor.GRAY).create());
         sender.spigot().sendMessage(new ComponentBuilder("/gc action <action>> [<parameters> ...]").color(ChatColor.DARK_AQUA)
                 .append(" - Run a GUICraft action").color(ChatColor.GRAY).create());
-    }
-
-    @Subcommand("item|i")
-    @Description("Save item to config file")
-    @CommandCompletion("@nothing @package:file=item")
-    public void onItem(CommandSender sender, String name, @Optional String pkg) {
-
-
-    }
-
-
-    @Subcommand("%action")
-    public class ActionSubCommand extends BaseCommand {
-
-        @Description("Execute an action")
-        @Default
-        public void onAction(CommandSender sender) {
-            sender.spigot().sendMessage(new ComponentBuilder("Invalid Action").create());
-        }
-
     }
 }

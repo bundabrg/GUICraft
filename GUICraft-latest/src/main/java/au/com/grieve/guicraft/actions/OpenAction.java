@@ -21,7 +21,6 @@ package au.com.grieve.guicraft.actions;
 import au.com.grieve.guicraft.GUIAction;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.MenuType;
-import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageVariable;
 import au.com.grieve.guicraft.exceptions.ActionException;
 import co.aikar.commands.BaseCommand;
@@ -58,12 +57,8 @@ public class OpenAction implements GUIAction {
         }
 
         // Get Config
-        System.err.println("Args: " + args[0]);
-        PackageVariable.Variable variable = GUICraft.getInstance().getPackageVariable().new Variable( "menu", null, args[0]);
-        System.err.println("OpenVar: " + variable.toString() + " - " + variable.toPath());
-
-        // Load config section
-        ConfigurationSection section = GUICraft.getInstance().getLocalConfig().getConfigurationSection(variable.toPath());
+        PackageVariable.Resolver resolver = GUICraft.getInstance().getPackageVariable().getResolver("menu");
+        ConfigurationSection section =  GUICraft.getInstance().getLocalConfig().getConfigurationSection(resolver.getPath(args[0]));
 
         if (section == null) {
             throw new ActionException("Invalid menu: " + args[0]);
@@ -88,14 +83,14 @@ public class OpenAction implements GUIAction {
 
     @CommandAlias("%guicraft")
     @Subcommand("%action")
-    public static class Command extends BaseCommand {
+    public class Command extends BaseCommand {
 
         @Subcommand("open|o")
         @Description("Execute open action")
         @CommandCompletion("@players @config:file=menu")
         public void onActionOpen(CommandSender sender, OnlinePlayer player, String config) {
             try {
-                GUICraft.getInstance().getActions().get("open").execute(player.player, new String[]{config});
+                OpenAction.this.execute(player.player, new String[]{config});
             } catch (ActionException e) {
                 sender.spigot().sendMessage(new ComponentBuilder("Invalid Action: ").append(e.getMessage()).create());
             }

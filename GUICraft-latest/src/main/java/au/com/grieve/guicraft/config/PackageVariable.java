@@ -19,6 +19,7 @@
 package au.com.grieve.guicraft.config;
 
 import lombok.Getter;
+import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.LinkedHashSet;
@@ -33,44 +34,14 @@ public class PackageVariable {
         this.config = config;
     }
 
-    /**
-     * Return all the variables for all packages found at file and path
-     */
-    public Set<Variable> getVariables(String filename, String path) {
-
-        Resolver resolver = new Resolver(filename, path);
-
-        Set<Variable> output = new LinkedHashSet<>();
-        for (Map.Entry<String, PackageConfiguration> entry : config.getPackages().entrySet()) {
-            PackageConfiguration.Location location = entry.getValue().getLocation();
-            System.err.println("Loc:" + location.toString());
-
-            // Check if filename matches
-            if (filename != null && !location.getFile().equals(filename)) {
-                continue;
-            }
-
-            // Check if path exists
-            ConfigurationSection section = entry.getValue().getConfigurationSection(path);
-            if (section == null) {
-                continue;
-            }
-
-            String variableDir = location.getDirectory().replace(config.options().fileSeparator(), '.');
-            if (variableDir.length() > 0) {
-                variableDir += ".";
-            }
-
-
-            // Get all Keys
-            for (String key : section.getKeys(false)) {
-
-                output.add(new Variable(resolver, variableDir + key.replace(config.options().pathSeparator(), '.')));
-            }
-
-        }
-        return output;
+    public Resolver getResolver(String file) {
+        return new Resolver(file, null);
     }
+
+    public Resolver getResolver(String file, String path) {
+        return new Resolver(file, path);
+    }
+
 
     /**
      * Resolver for a Variable
@@ -82,97 +53,195 @@ public class PackageVariable {
         private String path;
 
         public Resolver(String file, String path) {
+            Validate.notNull(file);
             this.file = file;
             this.path = path;
         }
 
-        public String toString() {
-            StringBuilder result = new StringBuilder();
+        /**
+         * Return all the keys for all packages that match this resolver
+         */
+        public Set<String> getKeys() {
+            Set<String> output = new LinkedHashSet<>();
+            for (Map.Entry<String, PackageConfiguration> entry : config.getPackages().entrySet()) {
+                PackageConfiguration.Location location = entry.getValue().getLocation();
 
-            if (this.file != null) {
-                result.append(this.file);
+                // Check if filename matches
+                if (!location.getFile().equals(file)) {
+                    continue;
+                }
+
+                ConfigurationSection section = entry.getValue();
+
+                // Check if path exists
                 if (path != null) {
-                    result.append(config.options().pathSeparator());
+                    section = section.getConfigurationSection(path);
+                    if (section == null) {
+                        continue;
+                    }
+                }
+
+                String variableDir = location.getDirectory().replace(config.options().fileSeparator(), '.');
+                if (variableDir.length() > 0) {
+                    variableDir += ".";
+                }
+
+                // Get all Keys
+                for (String key : section.getKeys(false)) {
+                    output.add(variableDir + key.replace(config.options().pathSeparator(), '.'));
                 }
             }
-            if (path != null) {
-                result.append(path);
+            return output;
+        }
+
+        /**
+         * Return a list of packages that match our spec
+         */
+        public Set<String> getPackages() {
+            Set<String> output = new LinkedHashSet<>();
+            for (Map.Entry<String, PackageConfiguration> entry : config.getPackages().entrySet()) {
+                PackageConfiguration.Location location = entry.getValue().getLocation();
+
+                // Check if filename matches
+                if (!location.getFile().equals(file)) {
+                    continue;
+                }
+
+                ConfigurationSection section = entry.getValue();
+
+                // Check if path exists
+                if (path != null) {
+                    if (section.getConfigurationSection(path) == null) {
+                        continue;
+                    }
+                }
+
+                String dir = location.getDirectory().replace(config.options().fileSeparator(), '.');
+                if (dir.length() == 0) {
+                    continue;
+                }
+
+                output.add(dir + ".");
             }
-
-            return result.toString();
-        }
-    }
-
-    /**
-     * A variable.
-     *
-     * A variables format is:
-     *      [dir.dir.]key
-     */
-    public class Variable {
-
-        @Getter
-        private Resolver resolver;
-        @Getter
-        private String directory;
-        @Getter
-        private String key;
-
-        public Variable(String file, String path, String variablePath) {
-            initVariable(new Resolver(file, path), variablePath);
-        }
-        public Variable(Resolver resolver, String variablePath) {
-            initVariable(resolver, variablePath);
+            return output;
         }
 
-        private void initVariable(Resolver resolver, String variablePath) {
-            this.resolver = resolver;
-            int loc = variablePath.lastIndexOf('.');
+        /**
+         * Return the fully qualified configuration path given path
+         */
+        public String getPath(String key) {
 
-            if (loc == -1) {
-                key = variablePath;
-                directory = null;
-            } else {
-                key = variablePath.substring(loc+1);
-                directory = variablePath.substring(0,loc);
-            }
-        }
 
-        public String toString() {
-            return (directory == null?"":directory + '.') + key;
-        }
-
-//        public PackageConfiguration.Location toLocation() {
-//            PackageConfigurationOptions options = getRoot().options();
-//
-//            return new Location(path.replace(options.variableSeparator(), options.fileSeparator())
-//                    + options.fileSeparator()
-//                    + location.replace(options.variableSeparator(), options.pathSeparator())
-//                    + options.pathSeparator()
-//                    + key
-//                    );
-//        }
-
-        public String toPath() {
-            PackageConfigurationOptions options = config.options();
-            String resolverString = resolver.toString();
             StringBuilder result = new StringBuilder();
 
-            if (directory != null) {
-                result.append(directory.replace('.', options.fileSeparator()));
-                if (resolverString != null) {
-                    result.append(options.fileSeparator());
-                }
+
+            int loc = key.lastIndexOf('.');
+
+            if (loc != -1) {
+                result.append(key.substring(0, loc).replace('.', config.options().fileSeparator()));
+                result.append(config.options().fileSeparator());
+                key = key.substring(loc+1);
             }
 
-            if (resolverString != null) {
-                result.append(resolverString).append(options.pathSeparator());
+            result.append(file);
+
+            if (path != null) {
+                result.append(config.options().pathSeparator());
+                result.append(path.replace('.', config.options().pathSeparator()));
             }
+
+            result.append(config.options().pathSeparator());
             result.append(key);
 
             return result.toString();
         }
-
-
     }
+
+
+
+//    public class Variable {
+//        private final Resolver resolver;
+//
+//        @Getter
+//        private final String path;
+//
+//        public Variable(Resolver resolver, String path) {
+//            this.resolver = resolver;
+//            this.path = path;
+//        }
+//
+//    }
+
+//    /**
+//     * A variable.
+//     *
+//     * A variables format is:
+//     *      [dir.dir.]key
+//     */
+//    public class Variable {
+//
+//        @Getter
+//        private Resolver resolver;
+//        @Getter
+//        private String directory;
+//        @Getter
+//        private String key;
+//
+//        public Variable(String file, String path, String variablePath) {
+//            initVariable(new Resolver(file, path), variablePath);
+//        }
+//        public Variable(Resolver resolver, String variablePath) {
+//            initVariable(resolver, variablePath);
+//        }
+//
+//        private void initVariable(Resolver resolver, String variablePath) {
+//            this.resolver = resolver;
+//            int loc = variablePath.lastIndexOf('.');
+//
+//            if (loc == -1) {
+//                key = variablePath;
+//                directory = null;
+//            } else {
+//                key = variablePath.substring(loc+1);
+//                directory = variablePath.substring(0,loc);
+//            }
+//        }
+//
+//        public String toString() {
+//            return (directory == null?"":directory + '.') + key;
+//        }
+//
+////        public PackageConfiguration.Location toLocation() {
+////            PackageConfigurationOptions options = getRoot().options();
+////
+////            return new Location(path.replace(options.variableSeparator(), options.fileSeparator())
+////                    + options.fileSeparator()
+////                    + location.replace(options.variableSeparator(), options.pathSeparator())
+////                    + options.pathSeparator()
+////                    + key
+////                    );
+////        }
+//
+//        public String toPath() {
+//            PackageConfigurationOptions options = config.options();
+//            String resolverString = resolver.toString();
+//            StringBuilder result = new StringBuilder();
+//
+//            if (directory != null) {
+//                result.append(directory.replace('.', options.fileSeparator()));
+//                if (resolverString != null) {
+//                    result.append(options.fileSeparator());
+//                }
+//            }
+//
+//            if (resolverString != null) {
+//                result.append(resolverString).append(options.pathSeparator());
+//            }
+//            result.append(key);
+//
+//            return result.toString();
+//        }
+//
+//
+//    }
 }

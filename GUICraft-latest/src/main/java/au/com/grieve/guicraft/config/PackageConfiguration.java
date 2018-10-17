@@ -206,6 +206,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
     @Override
     public Object get(String path, Object def) {
+        Validate.notNull(path, "Path cannot be null");
         Location location = getLocation().resolve(path);
 
         // If we are responsible for this package

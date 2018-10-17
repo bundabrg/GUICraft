@@ -22,16 +22,15 @@ import au.com.grieve.guicraft.actions.OpenAction;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageVariable;
+import au.com.grieve.guicraft.item_types.BukkitItemType;
 import au.com.grieve.guicraft.menu_types.InventoryMenu;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import co.aikar.commands.BukkitCommandManager;
 import lombok.Getter;
-import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class GUICraft extends VersionPlugin {
 
@@ -48,6 +47,8 @@ public class GUICraft extends VersionPlugin {
     private Map<String, GUIAction> actions = new HashMap<>();
     @Getter
     private Map<String, MenuType> menuTypes = new HashMap<>();
+    @Getter
+    private Map<String, ItemType> itemTypes = new HashMap<>();
 
     public GUICraft() {
         instance = this;
@@ -71,6 +72,9 @@ public class GUICraft extends VersionPlugin {
 
         // Register MenuTypes
         registerMenuTypes();
+
+        // Register ItemTypes
+        registerItemTypes();
 
 
 //        System.err.println("default/config.test1: " + localConfig.get("default/config.test1"));
@@ -103,36 +107,23 @@ public class GUICraft extends VersionPlugin {
         // Replacements
         commandManager.getCommandReplacements().addReplacement("guicraft", "guicraft|gui|gc");
         commandManager.getCommandReplacements().addReplacement("action", "action|a");
+        commandManager.getCommandReplacements().addReplacement("item", "item|i");
 
         // Tab Completions
         commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> {
             String file = c.getConfig("file");
             String path = c.getConfig("path");
 
-            Set<String> output = new LinkedHashSet<>();
-            for (PackageVariable.Variable variable : packageVariable.getVariables(file, path)) {
-                System.err.println("Var: " + variable.toString() + " - " + variable.toPath());
-                output.add(variable.toString());
-            }
-            return output;
+            PackageVariable.Resolver resolver = packageVariable.getResolver(file, path);
+            return new LinkedHashSet<>(resolver.getKeys());
         });
-//        commandManager.getCommandCompletions().registerAsyncCompletion("package", c -> {
-//            String match = c.getConfig("file");
-//            String append = c.getConfig("append");
-//            Set<String> output = new LinkedHashSet<>();
-//            for (String name : localConfig.getPackages().keySet()) {
-//                System.err.println(name);
-//
-//                PackageConfiguration.Location location = localConfig.new Location(name);
-//                if (match != null && !location.file().equals(match)) {
-//                    continue;
-//                }
-//                output.add(location.removeDefault().directory());
-//            }
-//            return output;
-//
-//        });
+        commandManager.getCommandCompletions().registerAsyncCompletion("package", c -> {
+            String file = c.getConfig("file");
+            String append = c.getConfig("append");
 
+            PackageVariable.Resolver resolver = packageVariable.getResolver(file);
+            return new LinkedHashSet<>(resolver.getPackages());
+        });
     }
 
     private void registerCommands() {
@@ -145,6 +136,10 @@ public class GUICraft extends VersionPlugin {
 
     private void registerMenuTypes() {
         registerMenuType("inventory", new InventoryMenu());
+    }
+
+    private void registerItemTypes() {
+        registerItemType("bukkit", new BukkitItemType());
     }
 
     /**
@@ -173,6 +168,20 @@ public class GUICraft extends VersionPlugin {
      */
     public void unregisterMenuType(String name) {
         menuTypes.remove(name);
+    }
+
+    /**
+     * Register a new ItemType
+     */
+    public void registerItemType(String name, ItemType type) {
+        itemTypes.put(name, type);
+    }
+
+    /**
+     * Unregister an Action
+     */
+    public void unregisterItemType(String name) {
+        itemTypes.remove(name);
     }
 
 }

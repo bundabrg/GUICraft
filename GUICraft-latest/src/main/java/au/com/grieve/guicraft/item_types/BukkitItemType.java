@@ -52,8 +52,10 @@ public class BukkitItemType implements ItemType {
         PackageVariable.Resolver resolver = GUICraft.getInstance().getPackageVariable().getResolver("item");
         PackageConfiguration config = GUICraft.getInstance().getLocalConfig();
 
-        System.err.println(resolver.getPath(path));
-        config.set(resolver.getPath(path), item.serialize());
+        ConfigurationSection section = config.createSection(resolver.getPath(path));
+
+        section.set("data", item.serialize());
+        section.set("type", "bukkit");
 
     }
 

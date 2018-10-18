@@ -63,7 +63,7 @@ public class PackageVariable {
          */
         public Set<String> getKeys() {
             Set<String> output = new LinkedHashSet<>();
-            for (Map.Entry<String, PackageConfiguration> entry : config.getPackages().entrySet()) {
+            for (Map.Entry<String, PackageConfiguration> entry : config.getConfigurations().entrySet()) {
                 PackageConfiguration.Location location = entry.getValue().getLocation();
 
                 // Check if filename matches
@@ -99,7 +99,7 @@ public class PackageVariable {
          */
         public Set<String> getPackages() {
             Set<String> output = new LinkedHashSet<>();
-            for (Map.Entry<String, PackageConfiguration> entry : config.getPackages().entrySet()) {
+            for (Map.Entry<String, PackageConfiguration> entry : config.getConfigurations().entrySet()) {
                 PackageConfiguration.Location location = entry.getValue().getLocation();
 
                 // Check if filename matches

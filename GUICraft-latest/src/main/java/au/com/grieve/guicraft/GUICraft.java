@@ -22,12 +22,15 @@ import au.com.grieve.guicraft.actions.OpenAction;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageVariable;
+import au.com.grieve.guicraft.config.YamlPackageConfiguration;
 import au.com.grieve.guicraft.item_types.BukkitItemType;
 import au.com.grieve.guicraft.menu_types.InventoryMenu;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import co.aikar.commands.BukkitCommandManager;
 import lombok.Getter;
+import org.bukkit.configuration.ConfigurationSection;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -77,26 +80,30 @@ public class GUICraft extends VersionPlugin {
         registerItemTypes();
 
 
-//        System.err.println("default/config.test1: " + localConfig.get("default/config.test1"));
-//        System.err.println("default/config.test2.test1: " + localConfig.get("default/config.test2.test1"));
-//        System.err.println("default/config2.test1: " + localConfig.get("default/config2.test1"));
-//        System.err.println("default/config2.test2.test1: " + localConfig.get("default/config2.test2.test1"));
-//        System.err.println("/default/config2.test1: " + localConfig.get("/default/config2.test1"));
-//        System.err.println("/default/config2.test2.test1: " + localConfig.get("/default/config2.test2.test1"));
-//        System.err.println("default/dir/config.test1: " + localConfig.get("default/dir/config.test1"));
-//        System.err.println("default/dir/config.test2.test1: " + localConfig.get("default/dir/config.test2.test1"));
-//        System.err.println("/default/dir/config.test2.test1: " + localConfig.get("/default/dir/config.test2.test1"));
-//
-//        ConfigurationSection section = localConfig.getConfigurationSection("/default/dir/config");
-//        System.err.println("../config.test1: " + section.get("../config.test1"));
-//        System.err.println("default/config.test3: " + localConfig.get("default/config.test3"));
-//        System.err.println("default/config.test4.test1: " + localConfig.get("default/config.test4.test1"));
+        System.err.println("gc/config.test1: " + localConfig.get("gc/config.test1"));
+        System.err.println("gc/config.test2.test1: " + localConfig.get("gc/config.test2.test1"));
+        System.err.println("gc/config2.test1: " + localConfig.get("gc/config2.test1"));
+        System.err.println("gc/config2.test2.test1: " + localConfig.get("gc/config2.test2.test1"));
+        System.err.println("/gc/config2.test1: " + localConfig.get("/gc/config2.test1"));
+        System.err.println("/gc/config2.test2.test1: " + localConfig.get("/gc/config2.test2.test1"));
+        System.err.println("gc/dir/config.test1: " + localConfig.get("gc/dir/config.test1"));
+        System.err.println("gc/dir/config.test2.test1: " + localConfig.get("gc/dir/config.test2.test1"));
+        System.err.println("/gc/dir/config.test2.test1: " + localConfig.get("/gc/dir/config.test2.test1"));
+
+        ConfigurationSection section = localConfig.getConfigurationSection("/gc/dir/config");
+        System.err.println("../config.test1: " + section.get("../config.test1"));
+        System.err.println("gc/config.test3: " + localConfig.get("gc/config.test3"));
+        System.err.println("gc/config.test4.test1: " + localConfig.get("gc/config.test4.test1"));
 
 
     }
 
     private void initConfig() {
-        localConfig = PackageConfiguration.loadConfiguration(getDataFolder());
+        try {
+            localConfig = YamlPackageConfiguration.loadConfiguration("gc", getDataFolder());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         packageVariable = new PackageVariable(localConfig);
     }
 

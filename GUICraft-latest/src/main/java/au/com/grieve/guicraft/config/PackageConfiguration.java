@@ -20,33 +20,30 @@ package au.com.grieve.guicraft.config;
 
 import lombok.Getter;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.MemorySection;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 /**
- * Provides a Package Configuration Class. This allows multiple YML files to be part of a greater structure
- * and to be able to reference each other through variables.
+ * Provides a Package Configuration Class. This will package up multiple ConfigurationSections under a namespace
  */
-public class PackageConfiguration extends MemorySection implements Configuration {
+public abstract class PackageConfiguration extends PackageSection implements Configuration {
     //
     // Relevant for the Root Package
     //
@@ -56,74 +53,22 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
     // Packages
     @Getter
-    private Map<String, PackageConfiguration> packages;
-    private PackageConfiguration root;
-    private String directory;
+    private Map<String, Configuration> configurations;
+
+
+    //
+    // Relevant for All
+    //
+    private PackageConfiguration parent;
+    private String namespace;
+    private ConfigurationSection section;
 
 
     //
     // Constructors
     //
 
-    /**
-     * Create an empty {@link PackageConfiguration} with no default values
-     */
-    public PackageConfiguration() {
-        super();
-        packages = new HashMap<>();
-        directory = "";
-    }
 
-    /**
-     * Create a new ConfigurationPackage
-     */
-    public PackageConfiguration(PackageConfiguration root, Configuration config, String directory) {
-        super();
-        copySection(config, this);
-        this.root = root;
-        this.directory = directory;
-    }
-
-    public static PackageConfiguration loadConfiguration(File path) {
-        return loadConfiguration(path.toPath());
-    }
-
-    public static PackageConfiguration loadConfiguration(Path path) {
-        PackageConfiguration config = new PackageConfiguration();
-
-        try {
-            config.load(path);
-        } catch (IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Cannot load Configuration from directory: " + path.toString(), e);
-        }
-
-        return config;
-    }
-
-    @Override
-    public void addDefault(String s, Object o) {
-
-    }
-
-    @Override
-    public void addDefaults(Map<String, Object> map) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void addDefaults(Configuration configuration) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Configuration getDefaults() {
-        return null;
-    }
-
-    @Override
-    public void setDefaults(Configuration configuration) {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * Return the {@link PackageConfigurationOptions} for this Package
@@ -136,48 +81,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
         return options;
     }
 
-    public void load(Path file) throws IOException {
-        load(file, options().defaultPath());
-    }
 
-    /**
-     * Load config from a file or directory. Their paths will be appended to the provided directory
-     */
-    public void load(Path file, String directory) throws IOException {
-        // Make sure we are root
-        if (getRoot() != this) {
-            throw new IOException("Can only load on root object");
-        }
-
-        Validate.notNull(directory, "Directory cannot be null");
-        Validate.notEmpty(directory, "Directory cannot be empty");
-        Validate.notNull(file, "File cannot be null");
-
-        // For directories we walk over it and recurse
-        if (Files.isDirectory(file)) {
-            Files.walk(file)
-                    .filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".yml"))
-                    .forEach(p -> {
-                        try {
-                            String relativePath = file.relativize(p).toString();
-                            load(p, directory + "/" + relativePath.substring(0, relativePath.length() - 4));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-            return;
-        }
-
-        if (!Files.isRegularFile(file)) {
-            throw new IOException("Not a file: " + file.toString());
-        }
-
-        // Load config
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file.toFile());
-        String realPath = directory.replaceFirst("^/*", "");
-        packages.put(realPath, new PackageConfiguration(this, config, realPath));
-    }
 
     protected void copySection(ConfigurationSection input, ConfigurationSection section) {
         for (String key : input.getKeys(false)) {
@@ -198,6 +102,16 @@ public class PackageConfiguration extends MemorySection implements Configuration
         } else {
             return (PackageConfiguration) super.getRoot();
         }
+    }
+
+    @Override
+    public ConfigurationSection getParent() {
+        return null;
+    }
+
+    @Override
+    public Object get(String s) {
+        return null;
     }
 
     public PackageConfiguration getLocalRoot() {
@@ -229,11 +143,251 @@ public class PackageConfiguration extends MemorySection implements Configuration
 
         // As root attempt to load
         String filePath = location.getFullFile().replaceFirst("^/*", "");
-        if (!packages.containsKey(filePath)) {
+        if (!configurations.containsKey(filePath)) {
             return def;
         }
 
-        return packages.get(filePath).get(location.getPath());
+        return configurations.get(filePath).get(location.getPath());
+    }
+
+    @Override
+    public void set(String s, Object o) {
+
+    }
+
+    @Override
+    public ConfigurationSection createSection(String s) {
+        return null;
+    }
+
+    @Override
+    public ConfigurationSection createSection(String s, Map<?, ?> map) {
+        return null;
+    }
+
+    @Override
+    public String getString(String s) {
+        return null;
+    }
+
+    @Override
+    public String getString(String s, String s1) {
+        return null;
+    }
+
+    @Override
+    public boolean isString(String s) {
+        return false;
+    }
+
+    @Override
+    public int getInt(String s) {
+        return 0;
+    }
+
+    @Override
+    public int getInt(String s, int i) {
+        return 0;
+    }
+
+    @Override
+    public boolean isInt(String s) {
+        return false;
+    }
+
+    @Override
+    public boolean getBoolean(String s) {
+        return false;
+    }
+
+    @Override
+    public boolean getBoolean(String s, boolean b) {
+        return false;
+    }
+
+    @Override
+    public boolean isBoolean(String s) {
+        return false;
+    }
+
+    @Override
+    public double getDouble(String s) {
+        return 0;
+    }
+
+    @Override
+    public double getDouble(String s, double v) {
+        return 0;
+    }
+
+    @Override
+    public boolean isDouble(String s) {
+        return false;
+    }
+
+    @Override
+    public long getLong(String s) {
+        return 0;
+    }
+
+    @Override
+    public long getLong(String s, long l) {
+        return 0;
+    }
+
+    @Override
+    public boolean isLong(String s) {
+        return false;
+    }
+
+    @Override
+    public List<?> getList(String s) {
+        return null;
+    }
+
+    @Override
+    public List<?> getList(String s, List<?> list) {
+        return null;
+    }
+
+    @Override
+    public boolean isList(String s) {
+        return false;
+    }
+
+    @Override
+    public List<String> getStringList(String s) {
+        return null;
+    }
+
+    @Override
+    public List<Integer> getIntegerList(String s) {
+        return null;
+    }
+
+    @Override
+    public List<Boolean> getBooleanList(String s) {
+        return null;
+    }
+
+    @Override
+    public List<Double> getDoubleList(String s) {
+        return null;
+    }
+
+    @Override
+    public List<Float> getFloatList(String s) {
+        return null;
+    }
+
+    @Override
+    public List<Long> getLongList(String s) {
+        return null;
+    }
+
+    @Override
+    public List<Byte> getByteList(String s) {
+        return null;
+    }
+
+    @Override
+    public List<Character> getCharacterList(String s) {
+        return null;
+    }
+
+    @Override
+    public List<Short> getShortList(String s) {
+        return null;
+    }
+
+    @Override
+    public List<Map<?, ?>> getMapList(String s) {
+        return null;
+    }
+
+    @Override
+    public <T extends ConfigurationSerializable> T getSerializable(String s, Class<T> aClass) {
+        return null;
+    }
+
+    @Override
+    public <T extends ConfigurationSerializable> T getSerializable(String s, Class<T> aClass, T t) {
+        return null;
+    }
+
+    @Override
+    public Vector getVector(String s) {
+        return null;
+    }
+
+    @Override
+    public Vector getVector(String s, Vector vector) {
+        return null;
+    }
+
+    @Override
+    public boolean isVector(String s) {
+        return false;
+    }
+
+    @Override
+    public OfflinePlayer getOfflinePlayer(String s) {
+        return null;
+    }
+
+    @Override
+    public OfflinePlayer getOfflinePlayer(String s, OfflinePlayer offlinePlayer) {
+        return null;
+    }
+
+    @Override
+    public boolean isOfflinePlayer(String s) {
+        return false;
+    }
+
+    @Override
+    public ItemStack getItemStack(String s) {
+        return null;
+    }
+
+    @Override
+    public ItemStack getItemStack(String s, ItemStack itemStack) {
+        return null;
+    }
+
+    @Override
+    public boolean isItemStack(String s) {
+        return false;
+    }
+
+    @Override
+    public Color getColor(String s) {
+        return null;
+    }
+
+    @Override
+    public Color getColor(String s, Color color) {
+        return null;
+    }
+
+    @Override
+    public boolean isColor(String s) {
+        return false;
+    }
+
+    @Override
+    public ConfigurationSection getConfigurationSection(String s) {
+        return null;
+    }
+
+    @Override
+    public boolean isConfigurationSection(String s) {
+        return false;
+    }
+
+    @Override
+    public ConfigurationSection getDefaultSection() {
+        return null;
     }
 
     /**
@@ -255,7 +409,7 @@ public class PackageConfiguration extends MemorySection implements Configuration
         Set<String> result = new LinkedHashSet<>();
         char pathSeparator = options().pathSeparator();
 
-        for (Map.Entry<String, PackageConfiguration> entry : packages.entrySet()) {
+        for (Map.Entry<String, PackageConfiguration> entry : configurations.entrySet()) {
             String path = entry.getKey();
 
             result.add(path);
@@ -269,17 +423,44 @@ public class PackageConfiguration extends MemorySection implements Configuration
         return result;
     }
 
+    @Override
+    public Map<String, Object> getValues(boolean b) {
+        return null;
+    }
+
+    @Override
+    public boolean contains(String s) {
+        return false;
+    }
+
+    @Override
+    public boolean contains(String s, boolean b) {
+        return false;
+    }
+
+    @Override
+    public boolean isSet(String s) {
+        return false;
+    }
+
+    @Override
+    public String getCurrentPath() {
+        return null;
+    }
+
+    @Override
+    public String getName() {
+        return null;
+    }
+
     /**
      * Return the location of the current directory
      */
     public Location getLocation() {
         String path = getCurrentPath();
 
-        return new Location(directory + (path.length() > 0?getRoot().options().pathSeparator() + path:""));
+        return new Location(namespace + (path.length() > 0?getRoot().options().pathSeparator() + path:""));
     }
-
-
-
 
     @Override
     public String toString() {
@@ -293,148 +474,5 @@ public class PackageConfiguration extends MemorySection implements Configuration
                 .append("']")
                 .toString();
     }
-
-    public class Location {
-
-        @Getter
-        private final String directory;
-
-        @Getter
-        private final String file;
-
-        @Getter
-        private final String path;
-
-        /**
-         * Create a new location based on a raw string
-         */
-        public Location(String raw) {
-            String[] data = splitRaw(raw);
-            directory = data[0];
-            file = data[1];
-            path = data[2];
-        }
-
-        private Location(String directory, String file, String path) {
-            this.directory = directory;
-            this.file = file;
-            this.path = path;
-        }
-
-        public Location resolve(String raw) {
-            String[] data = splitRaw(raw);
-            PackageConfigurationOptions options = getRoot().options();
-
-            if (data[0].length() > 0) {
-                // Absolute directory?
-                if (data[0].startsWith(String.valueOf(options.fileSeparator()))) {
-                    return new Location(data[0], data[1], data[2]);
-                }
-
-                // Get Relative directory
-                String resolveDirectory = directory + options.fileSeparator() + data[0];
-
-                Deque<String> stack = new ArrayDeque<>();
-                for (String part : resolveDirectory.split(String.valueOf(options.fileSeparator()))) {
-                    if (part.equals("..")) {
-                        if (!stack.isEmpty()) {
-                            stack.pop();
-                        }
-                        continue;
-                    }
-                    stack.push(part);
-                }
-
-                // Generate directory
-                StringJoiner result = new StringJoiner(String.valueOf(options.fileSeparator()));
-                stack.descendingIterator().forEachRemaining(result::add);
-                return new Location(result.toString(), data[1], data[2]);
-            }
-
-            if (data[1].length() > 0) {
-                return new Location(directory, data[1], data[2]);
-            }
-
-            return new Location(directory, file, data[2]);
-        }
-
-        /**
-         * Take a location string and split it into its components
-         *  Format:
-         *    - [/dir/dir/][file[:path.path]]
-         *    - path
-         *    - path.path
-         *    - /dir/file
-         *    - /dir/file.path
-         *    - ./file
-         *    - ./file.path
-         */
-        private String[] splitRaw(String raw) {
-            Validate.notNull(raw);
-            char fileSeparator = getRoot().options().fileSeparator();
-            char pathSeparator = getRoot().options().pathSeparator();
-            String resolveDirectory;
-            String resolveFile;
-            String resolvePath;
-
-            int fileSeparatorLocation = raw.lastIndexOf(fileSeparator);
-
-            if (fileSeparatorLocation == -1) {
-                resolveDirectory = "";
-                resolveFile = "";
-                resolvePath = raw;
-            } else {
-                resolveDirectory = raw.substring(0, fileSeparatorLocation);
-                raw = raw.substring(fileSeparatorLocation + 1);
-
-                int pathSeparatorLocation = raw.indexOf(pathSeparator);
-
-                if (pathSeparatorLocation == -1) {
-                    resolveFile = raw;
-                    resolvePath = "";
-                } else {
-                    resolveFile = raw.substring(0, pathSeparatorLocation);
-                    resolvePath = raw.substring(pathSeparatorLocation + 1);
-                }
-            }
-
-            return new String[]{resolveDirectory, resolveFile, resolvePath};
-        }
-
-        public String toString() {
-            PackageConfigurationOptions options = getRoot().options();
-            StringBuilder result = new StringBuilder();
-
-            result.append(getFullFile());
-
-            if (path.length() > 0) {
-                if (result.length() > 0) {
-                    result.append(options.pathSeparator());
-                }
-                result.append(path);
-            }
-
-            return result.toString();
-        }
-
-        public String getFullFile() {
-            PackageConfigurationOptions options = getRoot().options();
-            StringBuilder result = new StringBuilder();
-
-            if (directory.length() > 0) {
-                result.append(directory);
-            }
-
-            if (file.length() > 0) {
-                if (directory.length() > 0) {
-                    result.append(options.fileSeparator());
-                }
-                result.append(file);
-            }
-
-            return result.toString();
-        }
-    }
-
 
 }

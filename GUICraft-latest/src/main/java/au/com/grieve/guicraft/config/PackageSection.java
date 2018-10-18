@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -44,7 +46,10 @@ import java.util.stream.Collectors;
  */
 public class PackageSection extends MemorySection {
     private ConfigurationSection proxy;
+    private PackageSection rootNode;
     private PackageConfiguration root;
+
+    @Getter
     private String namespace;
 
 
@@ -59,41 +64,34 @@ public class PackageSection extends MemorySection {
      * Create a PackageSection that is a child of the PackageConfiguration
      */
     protected PackageSection(PackageConfiguration root, String namespace, ConfigurationSection proxy) {
+        super(root, namespace);
         this.proxy = proxy;
         this.root = root;
         this.namespace = namespace;
+        this.rootNode = this;
     }
 
-    protected PackageSection(ConfigurationSection parent, String path) {
-        super(parent, path);
-    }
-
-    /**
-     * Retrieve the proxy configurationsection for this location
-     */
-    ConfigurationSection getProxy() {
-        if (proxy != null) {
-            return proxy;
-        }
-
-        return getParent().getPr
+    protected PackageSection(PackageSection rootNode, ConfigurationSection proxy) {
+        super(rootNode, proxy.getCurrentPath());
+        this.rootNode = rootNode;
+        this.root = rootNode.getRoot();
+        this.proxy = proxy;
     }
 
     @Override
     public Set<String> getKeys(boolean deep) {
-        return getProxy().getKeys(deep);
+        return proxy.getKeys(deep);
     }
 
     @Override
     public Map<String, Object> getValues(boolean deep) {
-        return getProxy().getValues(deep).entrySet().stream()
+        return proxy.getValues(deep).entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, x -> {
                     if (x.getValue() instanceof ConfigurationSection) {
-                        return new PackageSection(this, x.getKey(), (ConfigurationSection) x.getValue());
+                        return new PackageSection(rootNode, (ConfigurationSection) x.getValue());
                     }
                     return x.getValue();
                 }));
-
     }
 
     @Override
@@ -103,9 +101,53 @@ public class PackageSection extends MemorySection {
 
     @Override
     public Object get(String path, Object def) {
-        //@TODO
-        System.err.println("Get: " + path);
-        return null;
+        Validate.notNull(path, "Path cannot be null");
+
+        if (path.length() == 0) {
+            return this;
+        }
+
+        Location location = getLocation().resolve(path);
+
+        // If we are responsible for this package
+        if (location.getFullFile().equals(getLocation().getFullFile())) {
+            final char separator = root.options().pathSeparator();
+            // i1 is the leading (higher) index
+            // i2 is the trailing (lower) index
+            int i1 = -1, i2;
+            PackageSection section = this;
+            while ((i1 = path.indexOf(separator, i2 = i1 + 1)) != -1) {
+                section = section.getConfigurationSection(path.substring(i2, i1));
+                if (section == null) {
+                    return def;
+                }
+            }
+
+            String key = path.substring(i2);
+            if (section.proxy == proxy) {
+                Object val = proxy.get(key, null);
+                if (val instanceof String) {
+                    Matcher matcher = Pattern.compile("\\$(?:([^{\\s]+)|(?:\\{)([^\\}]*)(?:}))").matcher((String) val);
+                    if (matcher.find()) {
+                        return rootNode.get(matcher.group(1) != null ? matcher.group(1) : matcher.group(2));
+                    }
+                }
+
+                if (val instanceof ConfigurationSection) {
+                    val = new PackageSection(rootNode, (ConfigurationSection) val);
+                }
+
+                return translate(val==null?def:val);
+            }
+            return section.get(key, def);
+        }
+
+        return getRoot().get(location.toString(), def);
+    }
+
+    @Override
+    public PackageSection getConfigurationSection(String path) {
+        return (PackageSection) super.getConfigurationSection(path);
     }
 
     @Override
@@ -115,246 +157,43 @@ public class PackageSection extends MemorySection {
 
     @Override
     public ConfigurationSection createSection(String path) {
-        //@TODO
-        return section.createSection(path);
+        return new PackageSection(rootNode, proxy.createSection(path));
     }
 
     @Override
     public ConfigurationSection createSection(String path, Map<?, ?> map) {
         //@TODO
-        return section.createSection(path, map);
+        return new PackageSection(rootNode, proxy.createSection(path, map));
     }
 
     @Override
-    public String getString(String path) {
-        Object def = getDefault(path);
-        return getString(path, def != null ? def.toString() : null);
+    public PackageConfiguration getRoot() {
+        return root;
+    }
+
+    /**
+     * Run input through all the translators
+     */
+    private Object translate(Object input) {
+        for (ConfigurationTranslator translator : getRoot().options().translators()) {
+            input = translator.translate(this, input);
+        }
+        return input;
     }
 
     @Override
-    public String getString(String path, String def) {
-        return section.getString(path, def);
+    public String getCurrentPath() {
+        return rootNode.getNamespace() + (proxy.getCurrentPath().length() == 0?"":getRoot().options().pathSeparator() + proxy.getCurrentPath());
     }
 
-    @Override
-    public boolean isString(String path) {
-        return section.isString(path);
+    /**
+     * Return the location of the current directory
+     */
+    public Location getLocation() {
+        return new Location(getCurrentPath());
     }
 
-    @Override
-    public int getInt(String path) {
-        return section.getInt(path);
-    }
 
-    @Override
-    public int getInt(String path, int def) {
-        return section.getInt(path, def);
-    }
-
-    @Override
-    public boolean isInt(String path) {
-        return section.isInt(path);
-    }
-
-    @Override
-    public boolean getBoolean(String path) {
-        return section.getBoolean(path);
-    }
-
-    @Override
-    public boolean getBoolean(String s, boolean b) {
-        return false;
-    }
-
-    @Override
-    public boolean isBoolean(String s) {
-        return false;
-    }
-
-    @Override
-    public double getDouble(String s) {
-        return 0;
-    }
-
-    @Override
-    public double getDouble(String s, double v) {
-        return 0;
-    }
-
-    @Override
-    public boolean isDouble(String s) {
-        return false;
-    }
-
-    @Override
-    public long getLong(String s) {
-        return 0;
-    }
-
-    @Override
-    public long getLong(String s, long l) {
-        return 0;
-    }
-
-    @Override
-    public boolean isLong(String s) {
-        return false;
-    }
-
-    @Override
-    public List<?> getList(String s) {
-        return null;
-    }
-
-    @Override
-    public List<?> getList(String s, List<?> list) {
-        return null;
-    }
-
-    @Override
-    public boolean isList(String s) {
-        return false;
-    }
-
-    @Override
-    public List<String> getStringList(String s) {
-        return null;
-    }
-
-    @Override
-    public List<Integer> getIntegerList(String s) {
-        return null;
-    }
-
-    @Override
-    public List<Boolean> getBooleanList(String s) {
-        return null;
-    }
-
-    @Override
-    public List<Double> getDoubleList(String s) {
-        return null;
-    }
-
-    @Override
-    public List<Float> getFloatList(String s) {
-        return null;
-    }
-
-    @Override
-    public List<Long> getLongList(String s) {
-        return null;
-    }
-
-    @Override
-    public List<Byte> getByteList(String s) {
-        return null;
-    }
-
-    @Override
-    public List<Character> getCharacterList(String s) {
-        return null;
-    }
-
-    @Override
-    public List<Short> getShortList(String s) {
-        return null;
-    }
-
-    @Override
-    public List<Map<?, ?>> getMapList(String s) {
-        return null;
-    }
-
-    @Override
-    public <T extends ConfigurationSerializable> T getSerializable(String s, Class<T> aClass) {
-        return null;
-    }
-
-    @Override
-    public <T extends ConfigurationSerializable> T getSerializable(String s, Class<T> aClass, T t) {
-        return null;
-    }
-
-    @Override
-    public Vector getVector(String s) {
-        return null;
-    }
-
-    @Override
-    public Vector getVector(String s, Vector vector) {
-        return null;
-    }
-
-    @Override
-    public boolean isVector(String s) {
-        return false;
-    }
-
-    @Override
-    public OfflinePlayer getOfflinePlayer(String s) {
-        return null;
-    }
-
-    @Override
-    public OfflinePlayer getOfflinePlayer(String s, OfflinePlayer offlinePlayer) {
-        return null;
-    }
-
-    @Override
-    public boolean isOfflinePlayer(String s) {
-        return false;
-    }
-
-    @Override
-    public ItemStack getItemStack(String s) {
-        return null;
-    }
-
-    @Override
-    public ItemStack getItemStack(String s, ItemStack itemStack) {
-        return null;
-    }
-
-    @Override
-    public boolean isItemStack(String s) {
-        return false;
-    }
-
-    @Override
-    public Color getColor(String s) {
-        return null;
-    }
-
-    @Override
-    public Color getColor(String s, Color color) {
-        return null;
-    }
-
-    @Override
-    public boolean isColor(String s) {
-        return false;
-    }
-
-    @Override
-    public ConfigurationSection getConfigurationSection(String s) {
-        return null;
-    }
-
-    @Override
-    public boolean isConfigurationSection(String s) {
-        return false;
-    }
-
-    @Override
-    public ConfigurationSection getDefaultSection() {
-        return null;
-    }
-
-    @Override
-    public void addDefault(String s, Object o) {
-
-    }
 
     public class Location {
 

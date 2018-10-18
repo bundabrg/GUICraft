@@ -46,11 +46,8 @@ public class YamlPackageConfiguration extends PackageConfiguration {
      * Add a new package
      */
     public void addPackage(String namespace, Path file) {
-        Validate.isTrue(getRoot() == this, "Can only add package to root");
         Validate.notNull(file, "File cannot be null");
         Validate.notNull(namespace, "Namespace cannot be null");
-
-        System.err.println("namespace: " + namespace + ", File: " + file.getFileName());
 
         // If file is actually a directory we walk over it and find all YAML files
         if (Files.isDirectory(file)) {
@@ -62,7 +59,7 @@ public class YamlPackageConfiguration extends PackageConfiguration {
                             Path relativePath = file.relativize(p);
                             Path parent = relativePath.getParent();
                             String dir = parent == null ? "" : (options().fileSeparator() + parent.getFileName().toString());
-                            addPackage(namespace + dir, relativePath);
+                            addPackage(namespace + dir, p);
                         });
             } catch (IOException e) {
                 e.printStackTrace();
@@ -70,7 +67,9 @@ public class YamlPackageConfiguration extends PackageConfiguration {
             return;
         }
 
-        YamlConfiguration = lo
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file.toFile());
+        String fileName = file.getFileName().toString();
+        addPackage(namespace + options().fileSeparator() + fileName.substring(0, fileName.length()-4), config);
     }
 
 

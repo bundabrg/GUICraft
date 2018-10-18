@@ -20,6 +20,7 @@ package au.com.grieve.guicraft.config;
 
 import lombok.Getter;
 import org.apache.commons.lang.Validate;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.LinkedHashSet;
@@ -63,15 +64,15 @@ public class PackageVariable {
          */
         public Set<String> getKeys() {
             Set<String> output = new LinkedHashSet<>();
-            for (Map.Entry<String, PackageConfiguration> entry : config.getConfigurations().entrySet()) {
-                PackageConfiguration.Location location = entry.getValue().getLocation();
+            for (String namespace : config.getKeys(false)) {
+                PackageConfiguration.Location location = config.getConfigurationSection(namespace).getLocation();
 
                 // Check if filename matches
                 if (!location.getFile().equals(file)) {
                     continue;
                 }
 
-                ConfigurationSection section = entry.getValue();
+                ConfigurationSection section = config.getConfigurationSection(namespace);
 
                 // Check if path exists
                 if (path != null) {
@@ -99,15 +100,15 @@ public class PackageVariable {
          */
         public Set<String> getPackages() {
             Set<String> output = new LinkedHashSet<>();
-            for (Map.Entry<String, PackageConfiguration> entry : config.getConfigurations().entrySet()) {
-                PackageConfiguration.Location location = entry.getValue().getLocation();
+            for (String namespace : config.getKeys(false)) {
+                PackageConfiguration.Location location = config.getConfigurationSection(namespace).getLocation();
 
                 // Check if filename matches
                 if (!location.getFile().equals(file)) {
                     continue;
                 }
 
-                ConfigurationSection section = entry.getValue();
+                ConfigurationSection section = config.getConfigurationSection(namespace);
 
                 // Check if path exists
                 if (path != null) {

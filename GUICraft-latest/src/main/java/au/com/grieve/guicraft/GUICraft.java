@@ -80,20 +80,20 @@ public class GUICraft extends VersionPlugin {
         registerItemTypes();
 
 
-        System.err.println("gc/config.test1: " + localConfig.get("gc/config.test1"));
-        System.err.println("gc/config.test2.test1: " + localConfig.get("gc/config.test2.test1"));
-        System.err.println("gc/config2.test1: " + localConfig.get("gc/config2.test1"));
-        System.err.println("gc/config2.test2.test1: " + localConfig.get("gc/config2.test2.test1"));
-        System.err.println("/gc/config2.test1: " + localConfig.get("/gc/config2.test1"));
-        System.err.println("/gc/config2.test2.test1: " + localConfig.get("/gc/config2.test2.test1"));
-        System.err.println("gc/dir/config.test1: " + localConfig.get("gc/dir/config.test1"));
-        System.err.println("gc/dir/config.test2.test1: " + localConfig.get("gc/dir/config.test2.test1"));
-        System.err.println("/gc/dir/config.test2.test1: " + localConfig.get("/gc/dir/config.test2.test1"));
-
-        ConfigurationSection section = localConfig.getConfigurationSection("/gc/dir/config");
-        System.err.println("../config.test1: " + section.get("../config.test1"));
-        System.err.println("gc/config.test3: " + localConfig.get("gc/config.test3"));
-        System.err.println("gc/config.test4.test1: " + localConfig.get("gc/config.test4.test1"));
+//        System.err.println("gc/config.test1: " + localConfig.get("gc/config.test1"));
+//        System.err.println("gc/config.test2.test1: " + localConfig.get("gc/config.test2.test1"));
+//        System.err.println("gc/config2.test1: " + localConfig.get("gc/config2.test1"));
+//        System.err.println("gc/config2.test2.test1: " + localConfig.get("gc/config2.test2.test1"));
+//        System.err.println("/gc/config2.test1: " + localConfig.get("/gc/config2.test1"));
+//        System.err.println("/gc/config2.test2.test1: " + localConfig.get("/gc/config2.test2.test1"));
+//        System.err.println("gc/dir/config.test1: " + localConfig.get("gc/dir/config.test1"));
+//        System.err.println("gc/dir/config.test2.test1: " + localConfig.get("gc/dir/config.test2.test1"));
+//        System.err.println("/gc/dir/config.test2.test1: " + localConfig.get("/gc/dir/config.test2.test1"));
+//
+//        ConfigurationSection section = localConfig.getConfigurationSection("/gc/dir/config");
+//        System.err.println("../config.test1: " + section.get("../config.test1"));
+//        System.err.println("gc/config.test3: " + localConfig.get("gc/config.test3"));
+//        System.err.println("gc/config.test4.test1: " + localConfig.get("gc/config.test4.test1"));
 
 
     }

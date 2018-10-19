@@ -19,23 +19,12 @@
 package au.com.grieve.guicraft.commands;
 
 import co.aikar.commands.BaseCommand;
-import co.aikar.commands.CommandIssuer;
 import co.aikar.commands.annotation.CommandAlias;
-import co.aikar.commands.annotation.CommandCompletion;
-import co.aikar.commands.annotation.Default;
-import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.HelpCommand;
-import co.aikar.commands.annotation.Optional;
 import co.aikar.commands.annotation.Subcommand;
-import co.aikar.commands.contexts.OnlinePlayer;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.yaml.snakeyaml.Yaml;
-
-import java.util.List;
 
 @CommandAlias("%guicraft")
 public class GUICraftCommand extends BaseCommand {

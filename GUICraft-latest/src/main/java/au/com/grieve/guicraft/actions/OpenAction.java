@@ -29,21 +29,16 @@ import co.aikar.commands.annotation.CommandCompletion;
 import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Subcommand;
 import co.aikar.commands.contexts.OnlinePlayer;
-import lombok.Getter;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import java.util.Map;
 
 /**
  * Opens a new menu based upon a config file
  */
 public class OpenAction implements GUIAction {
-
-    @Getter
-    private Map<String, MenuType> types;
 
     public OpenAction() {
         // Register a Command to manually execute this action
@@ -58,7 +53,7 @@ public class OpenAction implements GUIAction {
 
         // Get Config
         PackageResolver resolver = GUICraft.getInstance().getLocalConfig().getResolver("menu");
-        ConfigurationSection section =  GUICraft.getInstance().getLocalConfig().getConfigurationSection(resolver.getPath(args[0]));
+        ConfigurationSection section = GUICraft.getInstance().getLocalConfig().getConfigurationSection(resolver.getPath(args[0]));
 
         if (section == null) {
             throw new ActionException("Invalid menu: " + args[0]);

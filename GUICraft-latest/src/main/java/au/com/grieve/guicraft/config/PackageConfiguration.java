@@ -23,9 +23,7 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -83,17 +81,8 @@ public class PackageConfiguration extends PackageSection implements Configuratio
         return null;
     }
 
-    public void addPackage(String namespace, Class<? extends PackageRoot> rootPackage, Configuration config) {
-        PackageRoot instance;
-        try {
-             instance = rootPackage.getConstructor(PackageConfiguration.class, String.class, ConfigurationSection.class)
-                    .newInstance(this, namespace, config);
-        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        configurations.put(namespace, instance);
+    public void addPackage(String namespace, PackageRoot config) {
+        configurations.put(namespace, config);
     }
 
     @Override
@@ -106,17 +95,28 @@ public class PackageConfiguration extends PackageSection implements Configuratio
         Validate.notNull(path, "Path cannot be null");
         Location location = getLocation().resolve(path);
 
-        String filePath = location.getFullFile().replaceFirst("^" + options().fileSeparator() +"*", "");
-        if (!configurations.containsKey(filePath)) {
-            return def;
-        }
-
-        return configurations.get(filePath).get(location.getPath());
+        return getPackage(location.getFullFile()).get(location.getPath(), def);
     }
 
     @Override
     public void set(String path, Object value) {
+        Validate.notNull(path, "Path cannot be null");
+        Location location = getLocation().resolve(path);
 
+        getPackage(location.getFullFile()).set(location.getPath(), value);
+
+    }
+
+    /**
+     * Get a package given a file path
+     */
+    private PackageRoot getPackage(String filePath) {
+        filePath = filePath.replaceFirst("^" + options().fileSeparator() + "*", "");
+        if (!configurations.containsKey(filePath)) {
+            throw new IllegalArgumentException("Cannot find package: " + filePath);
+        }
+
+        return configurations.get(filePath);
     }
 
     @Override
@@ -133,7 +133,7 @@ public class PackageConfiguration extends PackageSection implements Configuratio
             throw new IllegalArgumentException("Cannot create a root section");
         }
 
-        return getConfigurationSection(location.getFullFile()).createSection(location.getPath(), map);
+        return getPackage(location.getFullFile()).createSection(location.getPath(), map);
     }
 
 //    @Override
@@ -167,18 +167,14 @@ public class PackageConfiguration extends PackageSection implements Configuratio
 
         return configurations.entrySet().stream()
                 .flatMap(x -> x.getValue().getKeys(true).stream()
-                    .map(y -> x.getKey() + options().pathSeparator() + y))
+                        .map(y -> x.getKey() + options().pathSeparator() + y))
                 .collect(Collectors.toSet());
     }
 
     @Override
     public Map<String, Object> getValues(boolean deep) {
-       return getKeys(deep).stream()
-        .collect(Collectors.toMap(x -> x, this::get));
-    }
-
-    public PackageSection getConfigurationSection(String path) {
-        return (PackageSection) super.getConfigurationSection(path);
+        return getKeys(deep).stream()
+                .collect(Collectors.toMap(x -> x, this::get));
     }
 
     @Override
@@ -188,8 +184,7 @@ public class PackageConfiguration extends PackageSection implements Configuratio
 
     @Override
     public String getName() {
-        System.err.println("RootGetName");
-        return null;
+        return "";
     }
 
     @Override
@@ -206,22 +201,21 @@ public class PackageConfiguration extends PackageSection implements Configuratio
     }
 
     /**
-     * Save all dirty packages
+     * Save all packages
      */
     public void save() {
+        configurations.forEach((key, value) -> value.save());
     }
 
     @Override
     public String toString() {
         Configuration root = getRoot();
-        return new StringBuilder()
-                .append(getClass().getSimpleName())
-                .append("[directory='")
-                .append(getLocation().toString())
-                .append("', root='")
-                .append(root == null ? null : root.getClass().getSimpleName())
-                .append("']")
-                .toString();
+        return getClass().getSimpleName() +
+                "[directory='" +
+                getLocation().toString() +
+                "', root='" +
+                (root == null ? null : root.getClass().getSimpleName()) +
+                "']";
     }
 
 

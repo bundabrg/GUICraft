@@ -126,7 +126,7 @@ public class PackageResolver {
         if (loc != -1) {
             result.append(key.substring(0, loc).replace('.', config.options().fileSeparator()));
             result.append(config.options().fileSeparator());
-            key = key.substring(loc+1);
+            key = key.substring(loc + 1);
         }
 
         result.append(file);

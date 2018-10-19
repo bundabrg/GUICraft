@@ -19,7 +19,6 @@
 package au.com.grieve.guicraft.config;
 
 import lombok.Getter;
-import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 
 public abstract class PackageRoot extends PackageSection {
@@ -35,9 +34,15 @@ public abstract class PackageRoot extends PackageSection {
         this.namespace = namespace;
     }
 
-    public void setDirty() {
-        dirty = true;
+    public void setDirty(boolean state) {
+        this.dirty = state;
     }
 
+    public void setDirty() {
+        setDirty(true);
+    }
+
+    public void save() {
+    }
 
 }

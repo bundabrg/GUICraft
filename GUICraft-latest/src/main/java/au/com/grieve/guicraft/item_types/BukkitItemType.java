@@ -35,7 +35,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.yaml.snakeyaml.Yaml;
 
 /**
  * A BukkitItem uses the built in bukkit serialization format. This should in theory support any item that does not

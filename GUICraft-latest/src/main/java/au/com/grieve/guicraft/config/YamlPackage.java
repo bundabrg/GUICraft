@@ -18,7 +18,6 @@
 
 package au.com.grieve.guicraft.config;
 
-import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -26,14 +25,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 
-public class YamlPackageRoot extends PackageRoot {
+public class YamlPackage extends PackageRoot {
 
     private Path file;
-    private boolean dirty = false;
-    private Map<String, Path> packageFiles = new HashMap<>();
 
     /**
      * Create a PackageSection that is a child of the PackageConfiguration
@@ -42,26 +37,10 @@ public class YamlPackageRoot extends PackageRoot {
      * @param namespace
      * @param proxy
      */
-    public YamlPackageRoot(PackageConfiguration root, String namespace, ConfigurationSection proxy) {
+    public YamlPackage(PackageConfiguration root, String namespace, ConfigurationSection proxy, Path file) {
         super(root, namespace, proxy);
+        this.file = file;
     }
-
-    @Override
-    public void set(String path, Object value) {
-        super.set(path, value);
-        dirty = true;
-    }
-
-    /**
-     * Add a new package
-     */
-    public void addPackage(String namespace, Path file) {
-        Validate.notNull(file, "File cannot be null");
-        Validate.notNull(namespace, "Namespace cannot be null");
-
-
-    }
-
 
     public static void loadConfiguration(PackageConfiguration config, String namespace, File file) throws IOException {
         loadConfiguration(config, namespace, file.toPath());
@@ -92,6 +71,21 @@ public class YamlPackageRoot extends PackageRoot {
 
         YamlConfiguration c = YamlConfiguration.loadConfiguration(file.toFile());
         String fileName = file.getFileName().toString();
-        config.addPackage(namespace + "/" + fileName.substring(0, fileName.length()-4), YamlPackageRoot.class, c);
+        String ns = namespace + "/" + fileName.substring(0, fileName.length() - 4);
+        config.addPackage(ns, new YamlPackage(config, ns, c, file));
+    }
+
+    /**
+     * Save back to the configuration file
+     */
+    public void save() {
+        if (isDirty()) {
+            try {
+                ((YamlConfiguration) proxy).save(file.toFile());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            setDirty(false);
+        }
     }
 }

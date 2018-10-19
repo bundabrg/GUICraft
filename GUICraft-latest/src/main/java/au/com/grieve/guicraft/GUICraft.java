@@ -22,7 +22,7 @@ import au.com.grieve.guicraft.actions.OpenAction;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageResolver;
-import au.com.grieve.guicraft.config.YamlPackageRoot;
+import au.com.grieve.guicraft.config.YamlPackage;
 import au.com.grieve.guicraft.item_types.BukkitItemType;
 import au.com.grieve.guicraft.menu_types.InventoryMenu;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
@@ -99,7 +99,7 @@ public class GUICraft extends VersionPlugin {
         localConfig = new PackageConfiguration();
 
         try {
-            YamlPackageRoot.loadConfiguration(localConfig, "gc", getDataFolder());
+            YamlPackage.loadConfiguration(localConfig, "gc", getDataFolder());
         } catch (IOException e) {
             e.printStackTrace();
         }

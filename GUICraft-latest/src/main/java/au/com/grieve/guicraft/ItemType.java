@@ -18,9 +18,6 @@
 
 package au.com.grieve.guicraft;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
-
 public interface ItemType {
 
 //    void open(Player player, ConfigurationSection section);

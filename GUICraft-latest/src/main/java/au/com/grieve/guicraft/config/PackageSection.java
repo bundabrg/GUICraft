@@ -20,6 +20,7 @@ package au.com.grieve.guicraft.config;
 
 import lombok.Getter;
 import org.apache.commons.lang.Validate;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemorySection;
 
@@ -138,7 +139,7 @@ public class PackageSection extends MemorySection {
                     val = new PackageSection(rootNode, (ConfigurationSection) val);
                 }
 
-                return translate(val==null?def:val);
+                return translate(val == null ? def : val);
             }
             return section.get(key, def);
         }
@@ -151,10 +152,36 @@ public class PackageSection extends MemorySection {
         return (PackageSection) super.getConfigurationSection(path);
     }
 
-    @Override
     public void set(String path, Object value) {
+        Validate.notEmpty(path, "Cannot set to an empty path");
+
+        Configuration root = getRoot();
+        if (root == null) {
+            throw new IllegalStateException("Cannot use section without a root");
+        }
+
+        final char separator = root.options().pathSeparator();
+        // i1 is the leading (higher) index
+        // i2 is the trailing (lower) index
+        int i1 = -1, i2;
+        ConfigurationSection section = this;
+        while ((i1 = path.indexOf(separator, i2 = i1 + 1)) != -1) {
+            String node = path.substring(i2, i1);
+            ConfigurationSection subSection = section.getConfigurationSection(node);
+            if (subSection == null) {
+                if (value == null) {
+                    // no need to create missing sub-sections if we want to remove the value:
+                    return;
+                }
+                section = section.createSection(node);
+            } else {
+                section = subSection;
+            }
+        }
+
+        String key = path.substring(i2);
         rootNode.setDirty();
-        //@TODO
+        proxy.set(key, value);
     }
 
     @Override
@@ -185,7 +212,7 @@ public class PackageSection extends MemorySection {
 
     @Override
     public String getCurrentPath() {
-        return rootNode.getNamespace() + (proxy.getCurrentPath().length() == 0?"":getRoot().options().pathSeparator() + proxy.getCurrentPath());
+        return rootNode.getNamespace() + (proxy.getCurrentPath().length() == 0 ? "" : getRoot().options().pathSeparator() + proxy.getCurrentPath());
     }
 
     /**
@@ -194,7 +221,6 @@ public class PackageSection extends MemorySection {
     public Location getLocation() {
         return new Location(getCurrentPath());
     }
-
 
 
     public class Location {
@@ -263,14 +289,14 @@ public class PackageSection extends MemorySection {
 
         /**
          * Take a location string and split it into its components
-         *  Format:
-         *    - [/dir/dir/][file[:path.path]]
-         *    - path
-         *    - path.path
-         *    - /dir/file
-         *    - /dir/file.path
-         *    - ./file
-         *    - ./file.path
+         * Format:
+         * - [/dir/dir/][file[:path.path]]
+         * - path
+         * - path.path
+         * - /dir/file
+         * - /dir/file.path
+         * - ./file
+         * - ./file.path
          */
         private String[] splitRaw(String raw) {
             Validate.notNull(raw);

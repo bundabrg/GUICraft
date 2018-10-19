@@ -21,7 +21,7 @@ package au.com.grieve.guicraft.item_types;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.ItemType;
 import au.com.grieve.guicraft.config.PackageConfiguration;
-import au.com.grieve.guicraft.config.PackageVariable;
+import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.exceptions.ItemException;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
@@ -49,21 +49,22 @@ public class BukkitItemType implements ItemType {
     }
 
     private void saveItem(String path, ItemStack item) throws ItemException {
-        PackageVariable.Resolver resolver = GUICraft.getInstance().getPackageVariable().getResolver("item");
         PackageConfiguration config = GUICraft.getInstance().getLocalConfig();
+        PackageResolver resolver = config.getResolver("item");
 
         ConfigurationSection section = config.createSection(resolver.getPath(path));
 
         section.set("data", item.serialize());
         section.set("type", "bukkit");
+        config.save();
 
     }
 
     @CommandAlias("%guicraft")
-    @Subcommand("%item bukkit")
+    @Subcommand("%item")
     public class Command extends BaseCommand {
 
-        @Subcommand("save")
+        @Subcommand("%save bukkit")
         @Description("Save item in hand as a bukkit item")
         @CommandCompletion("@package:file=item")
         public void onActionOpen(CommandSender sender, String path) {

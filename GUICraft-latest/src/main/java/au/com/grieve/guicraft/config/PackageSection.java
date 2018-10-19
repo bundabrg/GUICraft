@@ -20,19 +20,13 @@ package au.com.grieve.guicraft.config;
 
 import lombok.Getter;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Color;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemorySection;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -45,13 +39,12 @@ import java.util.stream.Collectors;
  * PackageConfiguration
  */
 public class PackageSection extends MemorySection {
-    private ConfigurationSection proxy;
-    private PackageSection rootNode;
-    private PackageConfiguration root;
+    protected ConfigurationSection proxy;
+    protected PackageRoot rootNode;
+    protected PackageConfiguration root;
 
     @Getter
-    private String namespace;
-
+    protected String namespace;
 
     protected PackageSection() {
         super();
@@ -60,18 +53,13 @@ public class PackageSection extends MemorySection {
         }
     }
 
-    /**
-     * Create a PackageSection that is a child of the PackageConfiguration
-     */
-    protected PackageSection(PackageConfiguration root, String namespace, ConfigurationSection proxy) {
-        super(root, namespace);
-        this.proxy = proxy;
+    protected PackageSection(PackageConfiguration root, ConfigurationSection proxy) {
+        super(root, proxy.getCurrentPath());
         this.root = root;
-        this.namespace = namespace;
-        this.rootNode = this;
+        this.proxy = proxy;
     }
 
-    protected PackageSection(PackageSection rootNode, ConfigurationSection proxy) {
+    protected PackageSection(PackageRoot rootNode, ConfigurationSection proxy) {
         super(rootNode, proxy.getCurrentPath());
         this.rootNode = rootNode;
         this.root = rootNode.getRoot();
@@ -80,17 +68,30 @@ public class PackageSection extends MemorySection {
 
     @Override
     public Set<String> getKeys(boolean deep) {
-        return proxy.getKeys(deep);
+        if (!deep) {
+            return proxy.getKeys(false);
+        }
+
+        Set<String> result = new LinkedHashSet<>();
+        for (String key : proxy.getKeys(false)) {
+            Object val = proxy.get(key);
+            if (val instanceof ConfigurationSection) {
+                result.addAll(getConfigurationSection(key).getKeys(true));
+            } else {
+                result.add(key);
+            }
+        }
+        return result;
     }
 
     @Override
     public Map<String, Object> getValues(boolean deep) {
-        return proxy.getValues(deep).entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, x -> {
-                    if (x.getValue() instanceof ConfigurationSection) {
-                        return new PackageSection(rootNode, (ConfigurationSection) x.getValue());
+        return getKeys(deep).stream()
+                .collect(Collectors.toMap(x -> x, x -> {
+                    if (proxy.get(x) instanceof ConfigurationSection) {
+                        return new PackageSection(rootNode, (ConfigurationSection) proxy.get(x));
                     }
-                    return x.getValue();
+                    return proxy.get(x);
                 }));
     }
 
@@ -152,17 +153,18 @@ public class PackageSection extends MemorySection {
 
     @Override
     public void set(String path, Object value) {
+        rootNode.setDirty();
         //@TODO
     }
 
     @Override
     public ConfigurationSection createSection(String path) {
-        return new PackageSection(rootNode, proxy.createSection(path));
+        return createSection(path, new HashMap<>());
     }
 
     @Override
     public ConfigurationSection createSection(String path, Map<?, ?> map) {
-        //@TODO
+        rootNode.setDirty();
         return new PackageSection(rootNode, proxy.createSection(path, map));
     }
 

@@ -21,7 +21,7 @@ package au.com.grieve.guicraft.actions;
 import au.com.grieve.guicraft.GUIAction;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.MenuType;
-import au.com.grieve.guicraft.config.PackageVariable;
+import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.exceptions.ActionException;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
@@ -57,7 +57,7 @@ public class OpenAction implements GUIAction {
         }
 
         // Get Config
-        PackageVariable.Resolver resolver = GUICraft.getInstance().getPackageVariable().getResolver("menu");
+        PackageResolver resolver = GUICraft.getInstance().getLocalConfig().getResolver("menu");
         ConfigurationSection section =  GUICraft.getInstance().getLocalConfig().getConfigurationSection(resolver.getPath(args[0]));
 
         if (section == null) {

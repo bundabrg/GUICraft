@@ -23,10 +23,12 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -38,7 +40,7 @@ public class PackageConfiguration extends PackageSection implements Configuratio
 
     // Packages
     @Getter
-    private Map<String, PackageSection> configurations = new HashMap<>();
+    private Map<String, PackageRoot> configurations = new HashMap<>();
 
     @Override
     public void addDefault(String s, Object o) {
@@ -81,8 +83,17 @@ public class PackageConfiguration extends PackageSection implements Configuratio
         return null;
     }
 
-    public void addPackage(String namespace, Configuration config) {
-        configurations.put(namespace, new PackageSection(this, namespace, config));
+    public void addPackage(String namespace, Class<? extends PackageRoot> rootPackage, Configuration config) {
+        PackageRoot instance;
+        try {
+             instance = rootPackage.getConstructor(PackageConfiguration.class, String.class, ConfigurationSection.class)
+                    .newInstance(this, namespace, config);
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        configurations.put(namespace, instance);
     }
 
     @Override
@@ -110,14 +121,19 @@ public class PackageConfiguration extends PackageSection implements Configuratio
 
     @Override
     public ConfigurationSection createSection(String path) {
-        System.err.println("RootCreateSection: " + path);
-        return null;
+        return createSection(path, new HashMap<>());
     }
 
     @Override
     public ConfigurationSection createSection(String path, Map<?, ?> map) {
-        System.err.println("RootCreateSection: " + path);
-        return null;
+        Validate.notNull(path, "Path cannot be null");
+        Location location = getLocation().resolve(path);
+
+        if (location.getPath().equals("")) {
+            throw new IllegalArgumentException("Cannot create a root section");
+        }
+
+        return getConfigurationSection(location.getFullFile()).createSection(location.getPath(), map);
     }
 
 //    @Override
@@ -145,14 +161,20 @@ public class PackageConfiguration extends PackageSection implements Configuratio
 
     @Override
     public Set<String> getKeys(boolean deep) {
-        System.err.println("RootGetKeys");
-        return new LinkedHashSet<>();
+        if (!deep) {
+            return configurations.keySet();
+        }
+
+        return configurations.entrySet().stream()
+                .flatMap(x -> x.getValue().getKeys(true).stream()
+                    .map(y -> x.getKey() + options().pathSeparator() + y))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Map<String, Object> getValues(boolean deep) {
-        System.err.println("RootGetValues");
-        return new HashMap<>();
+       return getKeys(deep).stream()
+        .collect(Collectors.toMap(x -> x, this::get));
     }
 
     public PackageSection getConfigurationSection(String path) {
@@ -175,6 +197,20 @@ public class PackageConfiguration extends PackageSection implements Configuratio
         return this;
     }
 
+    public PackageResolver getResolver(String file) {
+        return getResolver(file, null);
+    }
+
+    public PackageResolver getResolver(String file, String path) {
+        return new PackageResolver(this, file, path);
+    }
+
+    /**
+     * Save all dirty packages
+     */
+    public void save() {
+    }
+
     @Override
     public String toString() {
         Configuration root = getRoot();
@@ -187,5 +223,6 @@ public class PackageConfiguration extends PackageSection implements Configuratio
                 .append("']")
                 .toString();
     }
+
 
 }

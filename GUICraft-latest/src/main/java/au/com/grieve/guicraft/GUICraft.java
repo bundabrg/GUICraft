@@ -21,14 +21,13 @@ package au.com.grieve.guicraft;
 import au.com.grieve.guicraft.actions.OpenAction;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.guicraft.config.PackageConfiguration;
-import au.com.grieve.guicraft.config.PackageVariable;
-import au.com.grieve.guicraft.config.YamlPackageConfiguration;
+import au.com.grieve.guicraft.config.PackageResolver;
+import au.com.grieve.guicraft.config.YamlPackageRoot;
 import au.com.grieve.guicraft.item_types.BukkitItemType;
 import au.com.grieve.guicraft.menu_types.InventoryMenu;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import co.aikar.commands.BukkitCommandManager;
 import lombok.Getter;
-import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,8 +40,6 @@ public class GUICraft extends VersionPlugin {
     private static GUICraft instance;
     @Getter
     PackageConfiguration localConfig;
-    @Getter
-    PackageVariable packageVariable;
     // Variables
     @Getter
     private BukkitCommandManager commandManager;
@@ -99,12 +96,13 @@ public class GUICraft extends VersionPlugin {
     }
 
     private void initConfig() {
+        localConfig = new PackageConfiguration();
+
         try {
-            localConfig = YamlPackageConfiguration.loadConfiguration("gc", getDataFolder());
+            YamlPackageRoot.loadConfiguration(localConfig, "gc", getDataFolder());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        packageVariable = new PackageVariable(localConfig);
     }
 
     private void initCommandManager() {
@@ -115,20 +113,21 @@ public class GUICraft extends VersionPlugin {
         commandManager.getCommandReplacements().addReplacement("guicraft", "guicraft|gui|gc");
         commandManager.getCommandReplacements().addReplacement("action", "action|a");
         commandManager.getCommandReplacements().addReplacement("item", "item|i");
+        commandManager.getCommandReplacements().addReplacement("save", "save|s");
 
         // Tab Completions
         commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> {
             String file = c.getConfig("file");
             String path = c.getConfig("path");
 
-            PackageVariable.Resolver resolver = packageVariable.getResolver(file, path);
+            PackageResolver resolver = localConfig.getResolver(file, path);
             return new LinkedHashSet<>(resolver.getKeys());
         });
         commandManager.getCommandCompletions().registerAsyncCompletion("package", c -> {
             String file = c.getConfig("file");
             String append = c.getConfig("append");
 
-            PackageVariable.Resolver resolver = packageVariable.getResolver(file);
+            PackageResolver resolver = localConfig.getResolver(file);
             return new LinkedHashSet<>(resolver.getPackages());
         });
     }

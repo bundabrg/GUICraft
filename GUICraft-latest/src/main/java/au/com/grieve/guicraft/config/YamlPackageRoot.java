@@ -19,7 +19,7 @@
 package au.com.grieve.guicraft.config;
 
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -28,13 +28,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 
-public class YamlPackageConfiguration extends PackageConfiguration {
+public class YamlPackageRoot extends PackageRoot {
 
     private Path file;
     private boolean dirty = false;
     private Map<String, Path> packageFiles = new HashMap<>();
+
+    /**
+     * Create a PackageSection that is a child of the PackageConfiguration
+     *
+     * @param root
+     * @param namespace
+     * @param proxy
+     */
+    public YamlPackageRoot(PackageConfiguration root, String namespace, ConfigurationSection proxy) {
+        super(root, namespace, proxy);
+    }
 
     @Override
     public void set(String path, Object value) {
@@ -49,6 +59,15 @@ public class YamlPackageConfiguration extends PackageConfiguration {
         Validate.notNull(file, "File cannot be null");
         Validate.notNull(namespace, "Namespace cannot be null");
 
+
+    }
+
+
+    public static void loadConfiguration(PackageConfiguration config, String namespace, File file) throws IOException {
+        loadConfiguration(config, namespace, file.toPath());
+    }
+
+    public static void loadConfiguration(PackageConfiguration config, String namespace, Path file) throws IOException {
         // If file is actually a directory we walk over it and find all YAML files
         if (Files.isDirectory(file)) {
             try {
@@ -58,8 +77,12 @@ public class YamlPackageConfiguration extends PackageConfiguration {
                         .forEach(p -> {
                             Path relativePath = file.relativize(p);
                             Path parent = relativePath.getParent();
-                            String dir = parent == null ? "" : (options().fileSeparator() + parent.getFileName().toString());
-                            addPackage(namespace + dir, p);
+                            String dir = parent == null ? "" : ("/" + parent.getFileName().toString());
+                            try {
+                                loadConfiguration(config, namespace + dir, p);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         });
             } catch (IOException e) {
                 e.printStackTrace();
@@ -67,19 +90,8 @@ public class YamlPackageConfiguration extends PackageConfiguration {
             return;
         }
 
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file.toFile());
+        YamlConfiguration c = YamlConfiguration.loadConfiguration(file.toFile());
         String fileName = file.getFileName().toString();
-        addPackage(namespace + options().fileSeparator() + fileName.substring(0, fileName.length()-4), config);
-    }
-
-
-    public static YamlPackageConfiguration loadConfiguration(String namespace, File file) throws IOException {
-        return loadConfiguration(namespace, file.toPath());
-    }
-
-    public static YamlPackageConfiguration loadConfiguration(String namespace, Path file) throws IOException {
-        YamlPackageConfiguration config = new YamlPackageConfiguration();
-        config.addPackage(namespace, file);
-        return config;
+        config.addPackage(namespace + "/" + fileName.substring(0, fileName.length()-4), YamlPackageRoot.class, c);
     }
 }

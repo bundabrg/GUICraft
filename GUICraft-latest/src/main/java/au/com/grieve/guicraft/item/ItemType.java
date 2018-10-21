@@ -16,9 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.guicraft;
+package au.com.grieve.guicraft.item;
+
+import au.com.grieve.guicraft.exceptions.GUICraftException;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 public interface ItemType {
-
-//    void open(Player player, ConfigurationSection section);
+    ItemStack toItemStack(ConfigurationSection section) throws GUICraftException;
 }

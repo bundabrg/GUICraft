@@ -16,13 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.guicraft.item_types;
+package au.com.grieve.guicraft.item.types;
 
 import au.com.grieve.guicraft.GUICraft;
-import au.com.grieve.guicraft.ItemType;
+import au.com.grieve.guicraft.item.ItemType;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageResolver;
-import au.com.grieve.guicraft.exceptions.ItemException;
+import au.com.grieve.guicraft.exceptions.GUICraftException;
+import au.com.grieve.guicraft.item.ItemException;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandCompletion;
@@ -59,14 +60,26 @@ public class BukkitItemType implements ItemType {
 
     }
 
+    @Override
+    public ItemStack toItemStack(ConfigurationSection section) throws GUICraftException {
+        if (!section.getString("type", "").equals("bukkit")) {
+            throw new ItemException("Not a Bukkit Item Type: " + section.getName());
+        }
+        if (!section.contains("data") || !section.isConfigurationSection("data")) {
+            throw new ItemException("Invalid Bukkit Item Definition: " + section.getName());
+        }
+
+        return ItemStack.deserialize(section.getConfigurationSection("data").getValues(false));
+    }
+
     @CommandAlias("%guicraft")
     @Subcommand("%item")
     public class Command extends BaseCommand {
 
-        @Subcommand("%save bukkit")
+        @Subcommand("%itemsave")
         @Description("Save item in hand as a bukkit item")
-        @CommandCompletion("@package:file=item")
-        public void onActionOpen(CommandSender sender, String path) {
+        @CommandCompletion("@item.package bukkit")
+        public void onSave(CommandSender sender, String path, String type) {
             ItemStack item = ((Player) sender).getInventory().getItemInMainHand();
             if (item.getType() == Material.AIR) {
                 sender.spigot().sendMessage(new ComponentBuilder("Must hold item to save").color(ChatColor.RED).create());

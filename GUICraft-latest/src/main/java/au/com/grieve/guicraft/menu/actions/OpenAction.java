@@ -16,13 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.guicraft.actions;
+package au.com.grieve.guicraft.menu.actions;
 
-import au.com.grieve.guicraft.GUIAction;
+import au.com.grieve.guicraft.menu.Menu;
+import au.com.grieve.guicraft.menu.MenuAction;
 import au.com.grieve.guicraft.GUICraft;
-import au.com.grieve.guicraft.MenuType;
+import au.com.grieve.guicraft.menu.MenuType;
 import au.com.grieve.guicraft.config.PackageResolver;
-import au.com.grieve.guicraft.exceptions.ActionException;
+import au.com.grieve.guicraft.menu.MenuActionException;
+import au.com.grieve.guicraft.exceptions.GUICraftException;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandCompletion;
@@ -38,17 +40,16 @@ import org.bukkit.entity.Player;
 /**
  * Opens a new menu based upon a config file
  */
-public class OpenAction implements GUIAction {
+public class OpenAction implements MenuAction {
 
     public OpenAction() {
-        // Register a Command to manually execute this action
-        GUICraft.getInstance().getCommandManager().registerCommand(new Command());
+        GUICraft.getInstance().getCommandManager().registerCommand(new OpenCommand());
     }
 
     @Override
-    public void execute(Player player, String[] args) throws ActionException {
+    public void execute(Player player, String[] args) throws GUICraftException {
         if (args.length < 1) {
-            throw new ActionException("Not enough arguments");
+            throw new MenuActionException("Not enough arguments");
         }
 
         // Get Config
@@ -56,40 +57,37 @@ public class OpenAction implements GUIAction {
         ConfigurationSection section = GUICraft.getInstance().getLocalConfig().getConfigurationSection(resolver.getPath(args[0]));
 
         if (section == null) {
-            throw new ActionException("Invalid menu: " + args[0]);
+            throw new MenuActionException("Invalid menu: " + args[0]);
         }
 
         if (!section.contains("type")) {
-            throw new ActionException("Missing type in menu: " + args[0]);
+            throw new MenuActionException("Missing type in menu: " + args[0]);
         }
 
 
-        MenuType menuType = GUICraft.getInstance().getMenuTypes().get(section.getString("type"));
+        MenuType menuType = Menu.getInstance().getMenuTypes().get(section.getString("type"));
 
         if (menuType == null) {
-            throw new ActionException("Invalid type '" + section.getString("type") + "' in menu: " + args[0]);
+            throw new MenuActionException("Invalid type '" + section.getString("type") + "' in menu: " + args[0]);
         }
 
         // Pass to type
         menuType.open(player, section);
-
     }
 
-
     @CommandAlias("%guicraft")
-    @Subcommand("%action")
-    public class Command extends BaseCommand {
+    @Subcommand("%menu")
+    public class OpenCommand extends BaseCommand {
 
         @Subcommand("open|o")
         @Description("Execute open action")
-        @CommandCompletion("@players @config:file=menu")
-        public void onActionOpen(CommandSender sender, OnlinePlayer player, String config) {
+        @CommandCompletion("@players @menu.config")
+        public void onOpen(CommandSender sender, OnlinePlayer player, String config) {
             try {
-                OpenAction.this.execute(player.player, new String[]{config});
-            } catch (ActionException e) {
-                sender.spigot().sendMessage(new ComponentBuilder("Invalid Action: ").append(e.getMessage()).create());
+                Menu.getInstance().getMenuActions().get("open").execute(player.player, new String[]{config});
+            } catch (GUICraftException e) {
+                sender.spigot().sendMessage(new ComponentBuilder("Invalid Menu Action: ").append(e.getMessage()).create());
             }
         }
     }
-
 }

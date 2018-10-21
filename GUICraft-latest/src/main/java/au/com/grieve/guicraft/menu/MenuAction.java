@@ -16,24 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.guicraft.menu_types;
+package au.com.grieve.guicraft.menu;
 
-import au.com.grieve.guicraft.MenuType;
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
+import au.com.grieve.guicraft.exceptions.GUICraftException;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 
-public class InventoryMenu implements MenuType {
-    @Override
-    public void open(Player player, ConfigurationSection section) {
-        String title = section.getString("title", "Menu");
-        int rows = Math.max(1, section.getInt("rows", 5));
-
-        Inventory inventory = Bukkit.createInventory(player, 9 * rows, title);
-//        for(int i =0; i < size; i++) {
-//            shopInventory.setItem(i, items.get(i));
-//        }
-        player.openInventory(inventory);
-    }
+/**
+ * Provides an interface to a GUICraft Action.
+ */
+public interface MenuAction {
+    void execute(Player player, String[] args) throws GUICraftException;
 }

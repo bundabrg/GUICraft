@@ -16,12 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.guicraft;
+package au.com.grieve.guicraft.item;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
+import au.com.grieve.guicraft.exceptions.GUICraftException;
 
-public interface MenuType {
+public class ItemException extends GUICraftException {
 
-    void open(Player player, ConfigurationSection section);
+    public ItemException(String message) {
+        super(message);
+    }
 }

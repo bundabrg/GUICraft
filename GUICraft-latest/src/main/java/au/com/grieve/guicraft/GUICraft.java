@@ -18,13 +18,15 @@
 
 package au.com.grieve.guicraft;
 
-import au.com.grieve.guicraft.actions.OpenAction;
+import au.com.grieve.guicraft.menu.actions.OpenAction;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.config.YamlPackage;
-import au.com.grieve.guicraft.item_types.BukkitItemType;
-import au.com.grieve.guicraft.menu_types.InventoryMenu;
+import au.com.grieve.guicraft.item.Item;
+import au.com.grieve.guicraft.item.types.BukkitItemType;
+import au.com.grieve.guicraft.menu.types.InventoryMenu;
+import au.com.grieve.guicraft.menu.MenuType;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import co.aikar.commands.BukkitCommandManager;
 import lombok.Getter;
@@ -43,12 +45,9 @@ public class GUICraft extends VersionPlugin {
     // Variables
     @Getter
     private BukkitCommandManager commandManager;
-    @Getter
-    private Map<String, GUIAction> actions = new HashMap<>();
-    @Getter
-    private Map<String, MenuType> menuTypes = new HashMap<>();
-    @Getter
-    private Map<String, ItemType> itemTypes = new HashMap<>();
+//    @Getter
+//    private Map<String, GUIAction> actions = new HashMap<>();
+
 
     public GUICraft() {
         instance = this;
@@ -64,18 +63,11 @@ public class GUICraft extends VersionPlugin {
         // Setup Command Manager
         initCommandManager();
 
+        // Register Components
+        initComponents();
+
         // Register all Commands
         registerCommands();
-
-        // Register Actions
-        registerActions();
-
-        // Register MenuTypes
-        registerMenuTypes();
-
-        // Register ItemTypes
-        registerItemTypes();
-
 
 //        System.err.println("gc/config.test1: " + localConfig.get("gc/config.test1"));
 //        System.err.println("gc/config.test2.test1: " + localConfig.get("gc/config.test2.test1"));
@@ -111,9 +103,6 @@ public class GUICraft extends VersionPlugin {
 
         // Replacements
         commandManager.getCommandReplacements().addReplacement("guicraft", "guicraft|gui|gc");
-        commandManager.getCommandReplacements().addReplacement("action", "action|a");
-        commandManager.getCommandReplacements().addReplacement("item", "item|i");
-        commandManager.getCommandReplacements().addReplacement("save", "save|s");
 
         // Tab Completions
         commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> {
@@ -132,62 +121,12 @@ public class GUICraft extends VersionPlugin {
         });
     }
 
+    private void initComponents() {
+        new Item();
+    }
+
     private void registerCommands() {
         commandManager.registerCommand(new GUICraftCommand());
-    }
-
-    private void registerActions() {
-        registerAction("open", new OpenAction());
-    }
-
-    private void registerMenuTypes() {
-        registerMenuType("inventory", new InventoryMenu());
-    }
-
-    private void registerItemTypes() {
-        registerItemType("bukkit", new BukkitItemType());
-    }
-
-    /**
-     * Register a new Action
-     */
-    public void registerAction(String name, GUIAction action) {
-        actions.put(name, action);
-    }
-
-    /**
-     * Unregister an Action
-     */
-    public void unregisterAction(String name) {
-        actions.remove(name);
-    }
-
-    /**
-     * Register a MenuType
-     */
-    public void registerMenuType(String name, MenuType type) {
-        menuTypes.put(name, type);
-    }
-
-    /**
-     * Unregister MenuType
-     */
-    public void unregisterMenuType(String name) {
-        menuTypes.remove(name);
-    }
-
-    /**
-     * Register a new ItemType
-     */
-    public void registerItemType(String name, ItemType type) {
-        itemTypes.put(name, type);
-    }
-
-    /**
-     * Unregister an Action
-     */
-    public void unregisterItemType(String name) {
-        itemTypes.remove(name);
     }
 
 }

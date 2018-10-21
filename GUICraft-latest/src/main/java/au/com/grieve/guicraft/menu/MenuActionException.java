@@ -16,15 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.guicraft.exceptions;
+package au.com.grieve.guicraft.menu;
 
-public class ItemException extends Exception {
+import au.com.grieve.guicraft.exceptions.GUICraftException;
 
-    public ItemException(String message) {
+public class MenuActionException extends GUICraftException {
+    public MenuActionException(String message) {
         super(message);
-    }
-
-    public ItemException(String message, Throwable err) {
-        super(message, err);
     }
 }

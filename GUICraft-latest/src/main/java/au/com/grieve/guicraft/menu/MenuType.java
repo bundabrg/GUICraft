@@ -16,14 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.guicraft;
+package au.com.grieve.guicraft.menu;
 
-import au.com.grieve.guicraft.exceptions.ActionException;
+import au.com.grieve.guicraft.exceptions.GUICraftException;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-/**
- * Provides an interface to a GUICraft Action.
- */
-public interface GUIAction {
-    void execute(Player player, String[] args) throws ActionException;
+public interface MenuType {
+
+    void open(Player player, ConfigurationSection section) throws GUICraftException;
 }

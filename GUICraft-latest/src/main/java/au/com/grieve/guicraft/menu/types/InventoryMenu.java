@@ -36,7 +36,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class InventoryMenu implements MenuType, Listener {
@@ -87,7 +89,7 @@ public class InventoryMenu implements MenuType, Listener {
 
                     inventorySlotMap.put(slot, inventorySlot);
 
-                    inventory.addItem(itemType.toItemStack());
+                    inventory.setItem(slot, itemType.toItemStack());
                 } catch (GUICraftException ignored) {
                 }
             }
@@ -109,6 +111,39 @@ public class InventoryMenu implements MenuType, Listener {
         }
 
         if (inventorySlotMap.containsKey(event.getRawSlot())) {
+            List<String> matches = new ArrayList<>();
+            switch(event.getClick()) {
+                case LEFT:
+                    matches.add("left");
+                    break;
+                case SHIFT_LEFT:
+                    matches.add("shift_left");
+                    matches.add("left");
+                    break;
+                case WINDOW_BORDER_LEFT:
+                    matches.add("window_left");
+                    matches.add("left");
+                    break;
+                case DOUBLE_CLICK:
+                    matches.add("doubleclick");
+                    break;
+
+                case RIGHT:
+                    matches.add("right");
+                    break;
+                case SHIFT_RIGHT:
+                    matches.add("shift_right");
+                    matches.add("right");
+                    break;
+                case WINDOW_BORDER_RIGHT:
+
+                case MIDDLE:
+                case NUMBER_KEY:
+
+                case DROP:
+                case CONTROL_DROP:
+            }
+
             new Action(inventorySlotMap.get(event.getRawSlot()).configurationSection.get("action")).execute(event.getWhoClicked(),"gc menu", new String[]{"left"});
         }
 

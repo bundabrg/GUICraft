@@ -39,7 +39,7 @@ import org.bukkit.entity.Player;
 public class MenuCommands extends BaseCommand {
 
     @Subcommand("open|o")
-    @Description("Execute open command")
+    @Description("Open Menu")
     @CommandCompletion("@menu.config @players")
     public void onOpen(CommandSender sender, String path, @Optional OnlinePlayer player) {
         // Resolve Menu
@@ -63,6 +63,30 @@ public class MenuCommands extends BaseCommand {
 
 
             menuType.open(opener);
+
+        } catch (GUICraftException e) {
+            sender.spigot().sendMessage(new ComponentBuilder("Error: ").append(e.getMessage()).color(ChatColor.RED).create());
+        }
+    }
+
+    @Subcommand("close|c")
+    @Description("Close Menu")
+    @CommandCompletion("@menu.config @players")
+    public void onClose(CommandSender sender, @Optional OnlinePlayer player) {
+        // Resolve Menu
+        try {
+            Player closer;
+
+            if (player == null) {
+                if (!(sender instanceof Player)) {
+                    throw new MenuException("Execute command as player or specify their name on the end");
+                }
+                closer = (Player) sender;
+            } else {
+                closer = player.player;
+            }
+
+            closer.closeInventory();
 
         } catch (GUICraftException e) {
             sender.spigot().sendMessage(new ComponentBuilder("Error: ").append(e.getMessage()).color(ChatColor.RED).create());

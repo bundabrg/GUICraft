@@ -25,4 +25,8 @@ public class ItemException extends GUICraftException {
     public ItemException(String message) {
         super(message);
     }
+
+    public ItemException(String message, Throwable err) {
+        super(message, err);
+    }
 }

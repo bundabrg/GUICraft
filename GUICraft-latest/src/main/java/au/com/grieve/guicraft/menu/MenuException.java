@@ -25,4 +25,8 @@ public class MenuException extends GUICraftException {
     public MenuException(String message) {
         super(message);
     }
+
+    public MenuException(String message, Throwable err) {
+        super(message, err);
+    }
 }

@@ -19,22 +19,13 @@
 package au.com.grieve.guicraft.item.types;
 
 import au.com.grieve.guicraft.GUICraft;
-import au.com.grieve.guicraft.item.ItemType;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.item.ItemException;
-import co.aikar.commands.BaseCommand;
-import co.aikar.commands.annotation.CommandAlias;
-import co.aikar.commands.annotation.CommandCompletion;
-import co.aikar.commands.annotation.Description;
-import co.aikar.commands.annotation.Subcommand;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import org.bukkit.Material;
-import org.bukkit.command.CommandSender;
+import au.com.grieve.guicraft.item.ItemType;
+import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -43,12 +34,15 @@ import org.bukkit.inventory.ItemStack;
  */
 public class BukkitItemType implements ItemType {
 
-    public BukkitItemType() {
-        // Register a Command to manually execute this type
-        GUICraft.getInstance().getCommandManager().registerCommand(new Command());
+    @Getter
+    private ConfigurationSection config;
+
+    public BukkitItemType(ConfigurationSection config) {
+        this.config = config;
+
     }
 
-    private void saveItem(String path, ItemStack item) throws ItemException {
+    public static void saveItem(String path, ItemStack item) throws ItemException {
         PackageConfiguration config = GUICraft.getInstance().getLocalConfig();
         PackageResolver resolver = config.getResolver("item");
 
@@ -61,40 +55,15 @@ public class BukkitItemType implements ItemType {
     }
 
     @Override
-    public ItemStack toItemStack(ConfigurationSection section) throws GUICraftException {
-        if (!section.getString("type", "").equals("bukkit")) {
-            throw new ItemException("Not a Bukkit Item Type: " + section.getName());
+    public ItemStack toItemStack() throws GUICraftException {
+        if (!config.getString("type", "").equals("bukkit")) {
+            throw new ItemException("Not a Bukkit Item Type: " + config.getName());
         }
-        if (!section.contains("data") || !section.isConfigurationSection("data")) {
-            throw new ItemException("Invalid Bukkit Item Definition: " + section.getName());
+        if (!config.contains("data") || !config.isConfigurationSection("data")) {
+            throw new ItemException("Invalid Bukkit Item Definition: " + config.getName());
         }
 
-        return ItemStack.deserialize(section.getConfigurationSection("data").getValues(false));
-    }
-
-    @CommandAlias("%guicraft")
-    @Subcommand("%item")
-    public class Command extends BaseCommand {
-
-        @Subcommand("%itemsave")
-        @Description("Save item in hand as a bukkit item")
-        @CommandCompletion("@item.package bukkit")
-        public void onSave(CommandSender sender, String path, String type) {
-            ItemStack item = ((Player) sender).getInventory().getItemInMainHand();
-            if (item.getType() == Material.AIR) {
-                sender.spigot().sendMessage(new ComponentBuilder("Must hold item to save").color(ChatColor.RED).create());
-                return;
-            }
-
-            try {
-                saveItem(path, item);
-            } catch (ItemException e) {
-                sender.spigot().sendMessage(new ComponentBuilder("Failed to save item: ").append(e.getMessage()).create());
-                return;
-            }
-
-            sender.spigot().sendMessage(new ComponentBuilder("Item saved").create());
-        }
+        return ItemStack.deserialize(config.getConfigurationSection("data").getValues(false));
     }
 
 }

@@ -19,11 +19,16 @@
 package au.com.grieve.guicraft.menu;
 
 import au.com.grieve.guicraft.GUICraft;
+import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageResolver;
-import au.com.grieve.guicraft.menu.actions.OpenAction;
+import au.com.grieve.guicraft.config.PackageSection;
+import au.com.grieve.guicraft.exceptions.GUICraftException;
+import au.com.grieve.guicraft.menu.commands.MenuCommands;
 import au.com.grieve.guicraft.menu.types.InventoryMenu;
 import lombok.Getter;
+import org.bukkit.configuration.ConfigurationSection;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -34,9 +39,7 @@ public class Menu {
     private static Menu instance;
 
     @Getter
-    private Map<String, MenuType> menuTypes = new HashMap<>();
-    @Getter
-    private Map<String, MenuAction> menuActions = new HashMap<>();
+    private Map<String, Class<? extends MenuType>> menuTypes = new HashMap<>();
 
     public Menu() {
         instance = this;
@@ -57,17 +60,17 @@ public class Menu {
         });
 
         // Menu Types
-        registerMenuType("inventory", new InventoryMenu());
+        registerMenuType("inventory", InventoryMenu.class);
 
-        // Menu Actions
-        registerAction("open", new OpenAction());
+        // Commands
+        gui.getCommandManager().registerCommand(new MenuCommands());
 
     }
 
     /**
      * Register a MenuType
      */
-    public void registerMenuType(String name, MenuType type) {
+    public void registerMenuType(String name, Class<? extends MenuType> type) {
         menuTypes.put(name, type);
     }
 
@@ -79,21 +82,24 @@ public class Menu {
     }
 
     /**
-     * Register a new Action
+     * Lookup an ItemType by variable
      */
-    public void registerAction(String name, MenuAction action) {
-        menuActions.put(name, action);
+    public MenuType resolveMenuType(String path) throws GUICraftException {
+        PackageConfiguration config = GUICraft.getInstance().getLocalConfig();
+
+        PackageSection section = config.getConfigurationSection(config.getResolver("menu").getPath(path));
+
+        if (section == null || !section.contains("type") || !menuTypes.containsKey(section.getString("type"))) {
+            throw new MenuException("Unable to resolve MenuType: " + path);
+        }
+
+        try {
+            return menuTypes.get(section.getString("type")).getConstructor(ConfigurationSection.class)
+                    .newInstance(section);
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new MenuException("Failed to resolve MenuType: " + path, e);
+        }
     }
-
-    /**
-     * Unregister an Action
-     */
-    public void unregisterAction(String name) {
-        menuActions.remove(name);
-    }
-
-
-
 
     public static Menu getInstance() {
         return instance;

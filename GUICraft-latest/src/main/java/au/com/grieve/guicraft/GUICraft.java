@@ -18,23 +18,18 @@
 
 package au.com.grieve.guicraft;
 
-import au.com.grieve.guicraft.menu.actions.OpenAction;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.config.YamlPackage;
 import au.com.grieve.guicraft.item.Item;
-import au.com.grieve.guicraft.item.types.BukkitItemType;
-import au.com.grieve.guicraft.menu.types.InventoryMenu;
-import au.com.grieve.guicraft.menu.MenuType;
+import au.com.grieve.guicraft.menu.Menu;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import co.aikar.commands.BukkitCommandManager;
 import lombok.Getter;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 
 public class GUICraft extends VersionPlugin {
 
@@ -45,8 +40,6 @@ public class GUICraft extends VersionPlugin {
     // Variables
     @Getter
     private BukkitCommandManager commandManager;
-//    @Getter
-//    private Map<String, GUIAction> actions = new HashMap<>();
 
 
     public GUICraft() {
@@ -123,6 +116,7 @@ public class GUICraft extends VersionPlugin {
 
     private void initComponents() {
         new Item();
+        new Menu();
     }
 
     private void registerCommands() {

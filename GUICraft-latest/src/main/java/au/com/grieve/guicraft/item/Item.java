@@ -23,10 +23,12 @@ import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.config.PackageSection;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
+import au.com.grieve.guicraft.item.commands.BukkitCommands;
 import au.com.grieve.guicraft.item.types.BukkitItemType;
-import au.com.grieve.guicraft.menu.actions.OpenAction;
 import lombok.Getter;
+import org.bukkit.configuration.ConfigurationSection;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -36,7 +38,7 @@ public class Item {
     private static Item instance;
 
     @Getter
-    private Map<String, ItemType> itemTypes = new HashMap<>();
+    private Map<String, Class<? extends ItemType>> itemTypes = new HashMap<>();
 
     public Item() {
         instance = this;
@@ -60,13 +62,17 @@ public class Item {
 //        gui.registerAction("open", new OpenAction());
 
         // Item Types
-        registerItemType("bukkit", new BukkitItemType());
+        registerItemType("bukkit", BukkitItemType.class);
+
+        // Commands
+        // Register a Command to manually execute this type
+        GUICraft.getInstance().getCommandManager().registerCommand(new BukkitCommands());
     }
 
     /**
      * Register a new ItemType
      */
-    public void registerItemType(String name, ItemType type) {
+    public void registerItemType(String name, Class<? extends ItemType> type) {
         itemTypes.put(name, type);
     }
 
@@ -84,13 +90,18 @@ public class Item {
     public ItemType resolveItemType(String path) throws GUICraftException {
         PackageConfiguration config = GUICraft.getInstance().getLocalConfig();
 
-        PackageSection section = config.getConfigurationSection(config.getResolver("item").getPath());
+        PackageSection section = config.getConfigurationSection(config.getResolver("item").getPath(path));
 
         if (section == null || !section.contains("type") || !itemTypes.containsKey(section.getString("type"))) {
             throw new ItemException("Unable to resolve ItemType: " + path);
         }
 
-        return itemTypes.get(section.getString("type"));
+        try {
+            return itemTypes.get(section.getString("type")).getConstructor(ConfigurationSection.class)
+                    .newInstance(section);
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new ItemException("Unable to resolve ItemType: " + path, e);
+        }
     }
 
 }

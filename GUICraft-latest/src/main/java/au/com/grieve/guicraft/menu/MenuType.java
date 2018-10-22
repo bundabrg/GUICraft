@@ -19,10 +19,9 @@
 package au.com.grieve.guicraft.menu;
 
 import au.com.grieve.guicraft.exceptions.GUICraftException;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 public interface MenuType {
 
-    void open(Player player, ConfigurationSection section) throws GUICraftException;
+    void open(Player player) throws GUICraftException;
 }

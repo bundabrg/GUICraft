@@ -18,47 +18,50 @@
 
 package au.com.grieve.guicraft.menu.types;
 
-import au.com.grieve.guicraft.GUICraft;
-import au.com.grieve.guicraft.item.Item;
-import au.com.grieve.guicraft.item.ItemException;
-import au.com.grieve.guicraft.item.ItemType;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
+import au.com.grieve.guicraft.item.Item;
+import au.com.grieve.guicraft.item.ItemType;
 import au.com.grieve.guicraft.menu.MenuType;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 public class InventoryMenu implements MenuType {
+
+    @Getter
+    private ConfigurationSection config;
+
+    public InventoryMenu(ConfigurationSection config) {
+        this.config = config;
+    }
+
     @Override
-    public void open(Player player, ConfigurationSection section) throws GUICraftException {
-        String title = section.getString("title", "Menu");
-        int rows = Math.max(1, section.getInt("rows", 5));
+    public void open(Player player) {
+        String title = config.getString("title", "Menu");
+        int rows = Math.max(1, config.getInt("rows", 5));
 
         Inventory inventory = Bukkit.createInventory(player, 9 * rows, title);
 
-        ConfigurationSection items = section.getConfigurationSection("items");
+        ConfigurationSection items = config.getConfigurationSection("items");
         if (items != null) {
             for (String key : items.getKeys(false)) {
-                System.err.println("Key:" + key);
-                if (!items.isConfigurationSection(key)) {
-                    continue;
-                }
-
                 ConfigurationSection itemSection = items.getConfigurationSection(key);
-                if (!itemSection.contains("type")) {
+                if (itemSection == null) {
                     continue;
                 }
 
                 try {
-                    ItemStack item = Item.getInstance().resolveItemType(itemSection.getString("type")).toItemStack(itemSection);
-                    if (item == null) {
+                    ItemType itemType = Item.getInstance().resolveItemType(itemSection.getString("item"));
+                    if (itemType == null) {
+                        System.err.println("Null ItemType");
                         continue;
                     }
 
-                    inventory.addItem(item);
+                    inventory.addItem(itemType.toItemStack());
                 } catch (GUICraftException ignored) {
+                    System.err.println("Exception: " + ignored.getMessage());
                 }
             }
         }

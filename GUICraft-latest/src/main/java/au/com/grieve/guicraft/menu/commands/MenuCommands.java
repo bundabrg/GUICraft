@@ -26,10 +26,13 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandCompletion;
 import co.aikar.commands.annotation.Description;
+import co.aikar.commands.annotation.Optional;
 import co.aikar.commands.annotation.Subcommand;
 import co.aikar.commands.contexts.OnlinePlayer;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 @CommandAlias("%guicraft")
 @Subcommand("%menu")
@@ -37,8 +40,8 @@ public class MenuCommands extends BaseCommand {
 
     @Subcommand("open|o")
     @Description("Execute open command")
-    @CommandCompletion("@players @menu.config")
-    public void onOpen(CommandSender sender, OnlinePlayer player, String path) {
+    @CommandCompletion("@menu.config @players")
+    public void onOpen(CommandSender sender, String path, @Optional OnlinePlayer player) {
         // Resolve Menu
         try {
             MenuType menuType = Menu.getInstance().resolveMenuType(path);
@@ -47,10 +50,22 @@ public class MenuCommands extends BaseCommand {
                 throw new MenuException("Invalid menu: " + path);
             }
 
-            menuType.open(player.player);
+            Player opener;
+
+            if (player == null) {
+                if (!(sender instanceof Player)) {
+                    throw new MenuException("Execute command as player or specify their name on the end");
+                }
+                opener = (Player) sender;
+            } else {
+                opener = player.player;
+            }
+
+
+            menuType.open(opener);
 
         } catch (GUICraftException e) {
-            sender.spigot().sendMessage(new ComponentBuilder("Invalid Open Command: ").append(e.getMessage()).create());
+            sender.spigot().sendMessage(new ComponentBuilder("Error: ").append(e.getMessage()).color(ChatColor.RED).create());
         }
     }
 }

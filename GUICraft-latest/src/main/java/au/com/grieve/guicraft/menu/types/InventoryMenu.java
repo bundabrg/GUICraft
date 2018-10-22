@@ -18,6 +18,7 @@
 
 package au.com.grieve.guicraft.menu.types;
 
+import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.item.Item;
 import au.com.grieve.guicraft.item.ItemType;
@@ -26,15 +27,24 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 
-public class InventoryMenu implements MenuType {
+public class InventoryMenu implements MenuType, Listener {
+
+    private Inventory inventory;
 
     @Getter
     private ConfigurationSection config;
 
     public InventoryMenu(ConfigurationSection config) {
         this.config = config;
+
+        Bukkit.getServer().getPluginManager().registerEvents(this, GUICraft.getPlugin());
     }
 
     @Override
@@ -42,7 +52,7 @@ public class InventoryMenu implements MenuType {
         String title = config.getString("title", "Menu");
         int rows = Math.max(1, config.getInt("rows", 5));
 
-        Inventory inventory = Bukkit.createInventory(player, 9 * rows, title);
+        inventory = Bukkit.createInventory(player, 9 * rows, title);
 
         ConfigurationSection items = config.getConfigurationSection("items");
         if (items != null) {
@@ -55,17 +65,49 @@ public class InventoryMenu implements MenuType {
                 try {
                     ItemType itemType = Item.getInstance().resolveItemType(itemSection.getString("item"));
                     if (itemType == null) {
-                        System.err.println("Null ItemType");
                         continue;
                     }
 
                     inventory.addItem(itemType.toItemStack());
                 } catch (GUICraftException ignored) {
-                    System.err.println("Exception: " + ignored.getMessage());
                 }
             }
         }
 
         player.openInventory(inventory);
+    }
+
+    // Handle clicks in Menu
+    @EventHandler
+    public void onClick(InventoryClickEvent event) {
+        if (!event.getInventory().equals(inventory)) {
+            return;
+        }
+
+        // Ignore clicks outside of the menu
+        if (event.getClickedInventory() == null || !event.getClickedInventory().equals(inventory)) {
+            return;
+        }
+
+        Action[] actions = Action.parse(config.get("action"), "!gc menu");
+
+
+        event.setCancelled(true);
+    }
+
+    // Handle Close
+    @EventHandler
+    public void onClose(InventoryCloseEvent event) {
+        if (!event.getInventory().equals(inventory)) {
+            return;
+        }
+        System.err.println("Close");
+        HandlerList.unregisterAll(this);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        System.err.println("Finalized!");
     }
 }

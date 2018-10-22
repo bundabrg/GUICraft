@@ -18,11 +18,13 @@
 
 package au.com.grieve.guicraft.menu.types;
 
+import au.com.grieve.guicraft.Action;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.item.Item;
 import au.com.grieve.guicraft.item.ItemType;
 import au.com.grieve.guicraft.menu.MenuType;
+import lombok.Data;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -34,9 +36,13 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class InventoryMenu implements MenuType, Listener {
 
     private Inventory inventory;
+    private Map<Integer, InventorySlot> inventorySlotMap = new HashMap<>();
 
     @Getter
     private ConfigurationSection config;
@@ -51,6 +57,8 @@ public class InventoryMenu implements MenuType, Listener {
     public void open(Player player) {
         String title = config.getString("title", "Menu");
         int rows = Math.max(1, config.getInt("rows", 5));
+
+        player.closeInventory();
 
         inventory = Bukkit.createInventory(player, 9 * rows, title);
 
@@ -67,6 +75,17 @@ public class InventoryMenu implements MenuType, Listener {
                     if (itemType == null) {
                         continue;
                     }
+
+                    int slot = inventory.firstEmpty();
+                    if (slot == -1) {
+                        continue;
+                    }
+
+                    InventorySlot inventorySlot = new InventorySlot();
+                    inventorySlot.itemType = itemType;
+                    inventorySlot.configurationSection = itemSection;
+
+                    inventorySlotMap.put(slot, inventorySlot);
 
                     inventory.addItem(itemType.toItemStack());
                 } catch (GUICraftException ignored) {
@@ -89,7 +108,10 @@ public class InventoryMenu implements MenuType, Listener {
             return;
         }
 
-        Action[] actions = Action.parse(config.get("action"), "!gc menu");
+        if (inventorySlotMap.containsKey(event.getRawSlot())) {
+            new Action(inventorySlotMap.get(event.getRawSlot()).configurationSection.get("action")).execute(event.getWhoClicked(),"gc menu", new String[]{"left"});
+        }
+
 
 
         event.setCancelled(true);
@@ -109,5 +131,11 @@ public class InventoryMenu implements MenuType, Listener {
     protected void finalize() throws Throwable {
         super.finalize();
         System.err.println("Finalized!");
+    }
+
+    @Data
+    private class InventorySlot {
+        ItemType itemType;
+        ConfigurationSection configurationSection;
     }
 }

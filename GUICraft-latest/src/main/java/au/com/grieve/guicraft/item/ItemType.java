@@ -19,8 +19,11 @@
 package au.com.grieve.guicraft.item;
 
 import au.com.grieve.guicraft.exceptions.GUICraftException;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
 public interface ItemType {
     ItemStack toItemStack() throws GUICraftException;
+
+    ConfigurationSection getConfig();
 }

@@ -95,7 +95,11 @@ public class PackageConfiguration extends PackageSection implements Configuratio
         Validate.notNull(path, "Path cannot be null");
         Location location = getLocation().resolve(path);
 
-        return getPackage(location.getFullFile()).get(location.getPath(), def);
+        try {
+            return getPackage(location.getFullFile()).get(location.getPath(), def);
+        } catch (IllegalArgumentException e) {
+            return def;
+        }
     }
 
     @Override

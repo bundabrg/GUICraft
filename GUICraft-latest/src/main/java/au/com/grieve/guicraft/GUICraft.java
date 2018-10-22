@@ -24,6 +24,7 @@ import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.config.YamlPackage;
 import au.com.grieve.guicraft.item.Item;
 import au.com.grieve.guicraft.menu.Menu;
+import au.com.grieve.guicraft.vault.Vault;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import co.aikar.commands.BukkitCommandManager;
 import lombok.Getter;
@@ -115,8 +116,9 @@ public class GUICraft extends VersionPlugin {
     }
 
     private void initComponents() {
-        new Item();
-        new Menu();
+        Item.init();
+        Menu.init();
+        Vault.init();
     }
 
     private void registerCommands() {

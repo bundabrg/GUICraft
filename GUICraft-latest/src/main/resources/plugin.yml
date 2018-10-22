@@ -5,6 +5,9 @@ description: Advanced GUI System
 authors:
   - bundabrg
 version: 1.0-preview
+softdepend:
+- Vault
+
 #commands:
 #  guicraft:
 #    description: General GUICraft Command

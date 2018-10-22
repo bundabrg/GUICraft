@@ -120,10 +120,6 @@ public class InventoryMenu implements MenuType, Listener {
                     matches.add("shift_left");
                     matches.add("left");
                     break;
-                case WINDOW_BORDER_LEFT:
-                    matches.add("window_left");
-                    matches.add("left");
-                    break;
                 case DOUBLE_CLICK:
                     matches.add("doubleclick");
                     break;
@@ -135,19 +131,21 @@ public class InventoryMenu implements MenuType, Listener {
                     matches.add("shift_right");
                     matches.add("right");
                     break;
-                case WINDOW_BORDER_RIGHT:
 
                 case MIDDLE:
-                case NUMBER_KEY:
+                    matches.add("middle");
+                    break;
 
                 case DROP:
+                    matches.add("drop");
+                    break;
                 case CONTROL_DROP:
+                    matches.add("control_drop");
+                    break;
             }
 
-            new Action(inventorySlotMap.get(event.getRawSlot()).configurationSection.get("action")).execute(event.getWhoClicked(),"gc menu", new String[]{"left"});
+            new Action(inventorySlotMap.get(event.getRawSlot()).configurationSection.get("action")).execute(event.getWhoClicked(), "gc menu", matches.toArray(new String[0]));
         }
-
-
 
         event.setCancelled(true);
     }

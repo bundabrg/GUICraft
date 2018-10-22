@@ -40,8 +40,7 @@ public class Item {
     @Getter
     private Map<String, Class<? extends ItemType>> itemTypes = new HashMap<>();
 
-    public Item() {
-        instance = this;
+    protected Item() {
         GUICraft gui = GUICraft.getInstance();
 
         // Command Replacements
@@ -102,6 +101,13 @@ public class Item {
         } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new ItemException("Unable to resolve ItemType: " + path, e);
         }
+    }
+
+    public static void init() {
+        if (instance == null) {
+            instance = new Item();
+        }
+
     }
 
 }

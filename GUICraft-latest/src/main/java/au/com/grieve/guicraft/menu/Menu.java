@@ -42,8 +42,6 @@ public class Menu {
     private Map<String, Class<? extends MenuType>> menuTypes = new HashMap<>();
 
     public Menu() {
-        instance = this;
-
         GUICraft gui = GUICraft.getInstance();
 
         // Command Replacements
@@ -103,6 +101,12 @@ public class Menu {
 
     public static Menu getInstance() {
         return instance;
+    }
+
+    public static void init() {
+        if (instance == null) {
+            instance = new Menu();
+        }
     }
 
 }

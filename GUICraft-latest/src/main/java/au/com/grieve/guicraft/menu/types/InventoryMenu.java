@@ -160,15 +160,12 @@ public class InventoryMenu implements MenuType, Listener {
         HandlerList.unregisterAll(this);
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        System.err.println("Finalized!");
-    }
-
     @Data
     private class InventorySlot {
         ItemType itemType;
         ConfigurationSection configurationSection;
+    }
+
+    public static void init() {
     }
 }

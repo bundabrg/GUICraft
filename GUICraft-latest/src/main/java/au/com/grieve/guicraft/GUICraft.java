@@ -24,7 +24,7 @@ import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.config.YamlPackage;
 import au.com.grieve.guicraft.item.Item;
 import au.com.grieve.guicraft.menu.Menu;
-import au.com.grieve.guicraft.vault.Vault;
+import au.com.grieve.guicraft.economy.Economy;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
 import co.aikar.commands.BukkitCommandManager;
 import lombok.Getter;
@@ -94,9 +94,10 @@ public class GUICraft extends VersionPlugin {
     private void initCommandManager() {
         commandManager = new BukkitCommandManager(getPlugin());
         commandManager.enableUnstableAPI("help");
+        System.err.println("CMD: " + BukkitCommandManager.class.getPackage().toString());
 
         // Replacements
-        commandManager.getCommandReplacements().addReplacement("guicraft", "guicraft|gui|gc");
+        commandManager.getCommandReplacements().addReplacement("guicraft", "guicraft|ui|gc");
 
         // Tab Completions
         commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> {
@@ -118,7 +119,7 @@ public class GUICraft extends VersionPlugin {
     private void initComponents() {
         Item.init();
         Menu.init();
-        Vault.init();
+        Economy.init();
     }
 
     private void registerCommands() {

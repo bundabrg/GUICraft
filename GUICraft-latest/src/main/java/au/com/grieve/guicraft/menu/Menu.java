@@ -49,6 +49,7 @@ public class Menu {
 
         // Tab Completions
         gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("menu.config", c -> {
+            System.err.println(c.getInput());
             PackageResolver resolver = gui.getLocalConfig().getResolver("menu");
             return new LinkedHashSet<>(resolver.getKeys());
         });

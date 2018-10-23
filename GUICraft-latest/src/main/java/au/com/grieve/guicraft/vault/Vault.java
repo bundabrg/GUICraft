@@ -51,7 +51,7 @@ public class Vault {
         if (instance == null) {
             // Check if Vault is available
             if (!Bukkit.getServer().getPluginManager().isPluginEnabled("Vault")) {
-                return
+                return;
             }
 
             // Check if an Economy Provider is available

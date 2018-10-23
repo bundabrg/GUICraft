@@ -21,6 +21,7 @@ package au.com.grieve.guicraft.vault.commands;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.item.Item;
 import au.com.grieve.guicraft.item.ItemType;
+import au.com.grieve.guicraft.utils.ItemUtils;
 import au.com.grieve.guicraft.vault.Vault;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
@@ -33,7 +34,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 @CommandAlias("%guicraft")
 @Subcommand("%vault")
@@ -72,10 +73,32 @@ public class VaultCommands extends BaseCommand {
         }
 
         // Check if the player has inventory space
-        Inventory inventory = executor.getInventory();
-        if (inventory.h)
+        ItemStack itemStack;
 
+        try {
+            itemStack = itemType.toItemStack();
+            itemStack.setAmount(qty);
+        } catch (GUICraftException e) {
+            sender.spigot().sendMessage(new ComponentBuilder("Failed to buy item: ").append(e.getMessage()).color(ChatColor.RED).create());
+            return;
+        }
 
+        if (!ItemUtils.canStore(executor.getInventory(), itemStack)) {
+            sender.spigot().sendMessage(new ComponentBuilder("Not enough space in inventory.").color(ChatColor.RED).create());
+            return;
+        }
+
+        // Done
+        Vault.getInstance().getEconomy().withdrawPlayer(executor, totalCost);
+        executor.getInventory().addItem(itemStack);
+
+        sender.spigot().sendMessage(
+                new ComponentBuilder("Bought ")
+                        .append(itemStack.getItemMeta().getDisplayName())
+                        .append(" for ")
+                        .append(Vault.getInstance().getEconomy().format(totalCost))
+                        .append(".")
+                        .create());
     }
 
 }

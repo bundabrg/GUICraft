@@ -23,34 +23,30 @@ import au.com.grieve.guicraft.menu.Menu;
 import au.com.grieve.guicraft.menu.MenuException;
 import au.com.grieve.guicraft.menu.MenuType;
 import co.aikar.commands.BaseCommand;
-import co.aikar.commands.CommandIssuer;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandCompletion;
 import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Optional;
 import co.aikar.commands.annotation.Subcommand;
+import co.aikar.commands.annotation.Switch;
 import co.aikar.commands.contexts.OnlinePlayer;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.List;
 
 @CommandAlias("%guicraft")
 @Subcommand("%menu")
 public class MenuCommands extends BaseCommand {
 
-    @Override
-    public List<String> tabComplete(CommandIssuer issuer, String commandLabel, String[] args, boolean isAsync) {
-        System.err.println("Tab Complete: " + commandLabel + " - " + String.join(",", args));
-        return super.tabComplete(issuer, commandLabel, args, isAsync);
-    }
-
     @Subcommand("open|o")
     @Description("Open Menu")
-    @CommandCompletion("@menu.config @players")
-    public void onOpen(CommandSender sender, String path, @Optional OnlinePlayer player) {
+    @CommandCompletion("@menu.config @players test1|test2|test3")
+    public void onOpen(CommandSender sender,
+                       String path,
+                       @Switch("player,p") OnlinePlayer player,
+                       @Switch("test,t") String test) {
         // Resolve Menu
         try {
             MenuType menuType = Menu.getInstance().resolveMenuType(path);

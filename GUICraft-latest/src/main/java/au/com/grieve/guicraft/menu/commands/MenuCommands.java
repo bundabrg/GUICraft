@@ -18,83 +18,70 @@
 
 package au.com.grieve.guicraft.menu.commands;
 
-import au.com.grieve.guicraft.exceptions.GUICraftException;
-import au.com.grieve.guicraft.menu.Menu;
-import au.com.grieve.guicraft.menu.MenuException;
-import au.com.grieve.guicraft.menu.MenuType;
-import co.aikar.commands.BaseCommand;
-import co.aikar.commands.annotation.CommandAlias;
-import co.aikar.commands.annotation.CommandCompletion;
-import co.aikar.commands.annotation.Description;
-import co.aikar.commands.annotation.Optional;
-import co.aikar.commands.annotation.Subcommand;
-import co.aikar.commands.annotation.Switch;
-import co.aikar.commands.contexts.OnlinePlayer;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import au.com.grieve.bcf.annotations.Arg;
+import au.com.grieve.bcf.annotations.Description;
+import au.com.grieve.guicraft.commands.GUICraftCommand;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 
-@CommandAlias("%guicraft")
-@Subcommand("%menu")
-public class MenuCommands extends BaseCommand {
+@Arg("menu|m")
+public class MenuCommands extends GUICraftCommand {
 
-    @Subcommand("open|o")
+    @Arg("open|o @menu.config @player.online(switch=player|p, required=false, default=self) @menu.type.proxy")
     @Description("Open Menu")
-    @CommandCompletion("@menu.config @players test1|test2|test3")
-    public void onOpen(CommandSender sender,
-                       String path,
-                       @Switch("player,p") OnlinePlayer player,
-                       @Switch("test,t") String test) {
-        // Resolve Menu
-        try {
-            MenuType menuType = Menu.getInstance().resolveMenuType(path);
-
-            if (menuType == null) {
-                throw new MenuException("Invalid menu: " + path);
-            }
-
-            Player opener;
-
-            if (player == null) {
-                if (!(sender instanceof Player)) {
-                    throw new MenuException("Execute command as player or specify their name on the end");
-                }
-                opener = (Player) sender;
-            } else {
-                opener = player.player;
-            }
-
-
-            menuType.open(opener);
-
-        } catch (GUICraftException e) {
-            sender.spigot().sendMessage(new ComponentBuilder("Error: ").append(e.getMessage()).color(ChatColor.RED).create());
-        }
+    public void onOpen(CommandSender sender, String path, Player player) {
+        System.err.println("onOpen: " + sender + ", " + path + ", " + player);
+        return;
+//        // Resolve Menu
+//        try {
+//            MenuType menuType = Menu.getInstance().resolveMenuType(path);
+//
+//            if (menuType == null) {
+//                throw new MenuException("Invalid menu: " + path);
+//            }
+//
+//            Player opener;
+//
+//            if (player == null) {
+//                if (!(sender instanceof Player)) {
+//                    throw new MenuException("Execute command as player or specify their name on the end");
+//                }
+//                opener = (Player) sender;
+//            } else {
+//                opener = player.player;
+//            }
+//
+//
+//            menuType.open(opener);
+//
+//        } catch (GUICraftException e) {
+//            sender.spigot().sendMessage(new ComponentBuilder("Error: ").append(e.getMessage()).color(ChatColor.RED).create());
+//        }
     }
 
-    @Subcommand("close|c")
+    @Arg("close|c @players.online(switch=player|p, required=false, default=self)")
     @Description("Close Menu")
-    @CommandCompletion("@menu.config @players")
-    public void onClose(CommandSender sender, @Optional OnlinePlayer player) {
-        // Resolve Menu
-        try {
-            Player closer;
-
-            if (player == null) {
-                if (!(sender instanceof Player)) {
-                    throw new MenuException("Execute command as player or specify their name on the end");
-                }
-                closer = (Player) sender;
-            } else {
-                closer = player.player;
-            }
-
-            closer.closeInventory();
-
-        } catch (GUICraftException e) {
-            sender.spigot().sendMessage(new ComponentBuilder("Error: ").append(e.getMessage()).color(ChatColor.RED).create());
-        }
+    public void onClose(CommandSender sender, Player player) {
+        System.err.println("onOpen: " + sender + ", " + player);
+        return;
+//        // Resolve Menu
+//        try {
+//            Player closer;
+//
+//            if (player == null) {
+//                if (!(sender instanceof Player)) {
+//                    throw new MenuException("Execute command as player or specify their name on the end");
+//                }
+//                closer = (Player) sender;
+//            } else {
+//                closer = player.player;
+//            }
+//
+//            closer.closeInventory();
+//
+//        } catch (GUICraftException e) {
+//            sender.spigot().sendMessage(new ComponentBuilder("Error: ").append(e.getMessage()).color(ChatColor.RED).create());
+//        }
     }
 }

@@ -23,7 +23,6 @@ import au.com.grieve.guicraft.economy.commands.EconomyCommands;
 import au.com.grieve.guicraft.economy.types.VaultEconomy;
 import lombok.Getter;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,12 +39,12 @@ public class Economy {
         GUICraft gui = GUICraft.getInstance();
 
         // Command Replacements
-        gui.getCommandManager().getCommandReplacements().addReplacement("economy", "economy|e");
+//        gui.getCommandManager().getCommandReplacements().addReplacement("economy", "economy|e");
 
         // Tab Completions
-        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("economy_types", c -> {
-            return new ArrayList<>();
-        });
+//        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("economy_types", c -> {
+//            return new ArrayList<>();
+//        });
 
         // Economy Types
         VaultEconomy.register();

@@ -20,7 +20,6 @@ package au.com.grieve.guicraft.menu;
 
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.config.PackageConfiguration;
-import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.config.PackageSection;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.menu.commands.MenuCommands;
@@ -30,7 +29,6 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 
 public class Menu {
@@ -45,18 +43,18 @@ public class Menu {
         GUICraft gui = GUICraft.getInstance();
 
         // Command Replacements
-        gui.getCommandManager().getCommandReplacements().addReplacement("menu", "menu|m");
+//        gui.getCommandManager().getCommandReplacements().addReplacement("menu", "menu|m");
 
         // Tab Completions
-        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("menu.config", c -> {
-            System.err.println(c.getInput());
-            PackageResolver resolver = gui.getLocalConfig().getResolver("menu");
-            return new LinkedHashSet<>(resolver.getKeys());
-        });
-        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("menu.package", c -> {
-            PackageResolver resolver = gui.getLocalConfig().getResolver("menu");
-            return new LinkedHashSet<>(resolver.getPackages());
-        });
+//        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("menu.config", c -> {
+//            System.err.println(c.getInput());
+//            PackageResolver resolver = gui.getLocalConfig().getResolver("menu");
+//            return new LinkedHashSet<>(resolver.getKeys());
+//        });
+//        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("menu.package", c -> {
+//            PackageResolver resolver = gui.getLocalConfig().getResolver("menu");
+//            return new LinkedHashSet<>(resolver.getPackages());
+//        });
 
         // Menu Types
         registerMenuType("inventory", InventoryMenu.class);

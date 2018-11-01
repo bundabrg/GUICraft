@@ -18,42 +18,32 @@
 
 package au.com.grieve.guicraft.item.commands;
 
-import au.com.grieve.guicraft.item.ItemException;
-import au.com.grieve.guicraft.item.types.BukkitItemType;
-import co.aikar.commands.BaseCommand;
-import co.aikar.commands.annotation.CommandAlias;
-import co.aikar.commands.annotation.CommandCompletion;
-import co.aikar.commands.annotation.Description;
-import co.aikar.commands.annotation.Subcommand;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import org.bukkit.Material;
+import au.com.grieve.bcf.annotations.Arg;
+import au.com.grieve.bcf.annotations.Description;
+import au.com.grieve.guicraft.commands.GUICraftCommand;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 
-@CommandAlias("%guicraft")
-@Subcommand("%item")
-public class BukkitCommands extends BaseCommand {
+@Arg("item|i")
+public class BukkitCommands extends GUICraftCommand {
 
-    @Subcommand("%itemsave")
+    @Arg("save|s @item.package bukkit")
     @Description("Save item in hand as a bukkit item")
-    @CommandCompletion("@item.package bukkit")
     public void onSave(CommandSender sender, String path, String type) {
-        ItemStack item = ((Player) sender).getInventory().getItemInMainHand();
-        if (item.getType() == Material.AIR) {
-            sender.spigot().sendMessage(new ComponentBuilder("Must hold item to save").color(ChatColor.RED).create());
-            return;
-        }
-
-        try {
-            BukkitItemType.saveItem(path, item);
-        } catch (ItemException e) {
-            sender.spigot().sendMessage(new ComponentBuilder("Failed to save item: ").append(e.getMessage()).create());
-            return;
-        }
-
-        sender.spigot().sendMessage(new ComponentBuilder("Item saved").create());
+        System.err.println(sender + ", " + path + ", " + type);
+//        ItemStack item = ((Player) sender).getInventory().getItemInMainHand();
+//        if (item.getType() == Material.AIR) {
+//            sender.spigot().sendMessage(new ComponentBuilder("Must hold item to save").color(ChatColor.RED).create());
+//            return;
+//        }
+//
+//        try {
+//            BukkitItemType.saveItem(path, item);
+//        } catch (ItemException e) {
+//            sender.spigot().sendMessage(new ComponentBuilder("Failed to save item: ").append(e.getMessage()).create());
+//            return;
+//        }
+//
+//        sender.spigot().sendMessage(new ComponentBuilder("Item saved").create());
     }
 }

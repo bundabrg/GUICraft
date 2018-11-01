@@ -18,27 +18,21 @@
 
 package au.com.grieve.guicraft.economy.commands;
 
-import au.com.grieve.guicraft.exceptions.GUICraftException;
-import au.com.grieve.guicraft.item.Item;
-import au.com.grieve.guicraft.item.ItemType;
-import au.com.grieve.guicraft.utils.ItemUtils;
-import au.com.grieve.guicraft.economy.Economy;
-import co.aikar.commands.BaseCommand;
-import co.aikar.commands.annotation.CommandAlias;
-import co.aikar.commands.annotation.CommandCompletion;
-import co.aikar.commands.annotation.Description;
-import co.aikar.commands.annotation.Optional;
-import co.aikar.commands.annotation.Subcommand;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import au.com.grieve.bcf.annotations.Arg;
+import au.com.grieve.bcf.annotations.Description;
+import au.com.grieve.guicraft.commands.GUICraftCommand;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
-@CommandAlias("%guicraft")
-@Subcommand("%economy")
-public class EconomyCommands extends BaseCommand {
+@Arg("economy|e")
+public class EconomyCommands extends GUICraftCommand {
+
+
+    @Arg("buy|b @item.config @player.offline(switch=player|p, required=false, default=self) @double @int")
+    @Description("Buy Item")
+    public void onBuy(CommandSender sender, String itemPath, OfflinePlayer player, double cost, int qty) {
+        System.err.println(sender + ", " + itemPath + ", " + player + ", " + cost + ", " + qty);
+    }
 
 //    @Subcommand("buy|b")
 //    @Description("Buy using Vault")

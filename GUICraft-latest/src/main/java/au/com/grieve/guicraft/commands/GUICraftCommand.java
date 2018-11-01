@@ -18,19 +18,17 @@
 
 package au.com.grieve.guicraft.commands;
 
-import co.aikar.commands.BaseCommand;
-import co.aikar.commands.annotation.CommandAlias;
-import co.aikar.commands.annotation.HelpCommand;
-import co.aikar.commands.annotation.Subcommand;
+import au.com.grieve.bcf.BaseCommand;
+import au.com.grieve.bcf.annotations.Arg;
+import au.com.grieve.bcf.annotations.Command;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.command.CommandSender;
 
-@CommandAlias("%guicraft")
+@Command("guicraft|gc")
 public class GUICraftCommand extends BaseCommand {
 
-    @HelpCommand
-    @Subcommand("help")
+    @Arg("help|?")
     public void onHelp(CommandSender sender) {
         sender.spigot().sendMessage(new ComponentBuilder("=== [ GUICraft Help ] ===").color(ChatColor.AQUA).create());
         sender.spigot().sendMessage(new ComponentBuilder("/gc help <command>").color(ChatColor.DARK_AQUA)

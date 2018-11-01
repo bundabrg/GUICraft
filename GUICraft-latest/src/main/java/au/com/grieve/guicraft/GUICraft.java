@@ -18,19 +18,17 @@
 
 package au.com.grieve.guicraft;
 
+import au.com.grieve.bcf.CommandManager;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.guicraft.config.PackageConfiguration;
-import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.config.YamlPackage;
+import au.com.grieve.guicraft.economy.Economy;
 import au.com.grieve.guicraft.item.Item;
 import au.com.grieve.guicraft.menu.Menu;
-import au.com.grieve.guicraft.economy.Economy;
 import au.com.grieve.multi_version_plugin.VersionPlugin;
-import co.aikar.commands.BukkitCommandManager;
 import lombok.Getter;
 
 import java.io.IOException;
-import java.util.LinkedHashSet;
 
 public class GUICraft extends VersionPlugin {
 
@@ -40,7 +38,7 @@ public class GUICraft extends VersionPlugin {
     PackageConfiguration localConfig;
     // Variables
     @Getter
-    private BukkitCommandManager commandManager;
+    private CommandManager commandManager;
 
 
     public GUICraft() {
@@ -92,28 +90,26 @@ public class GUICraft extends VersionPlugin {
     }
 
     private void initCommandManager() {
-        commandManager = new BukkitCommandManager(getPlugin());
-        commandManager.enableUnstableAPI("help");
-        System.err.println("CMD: " + BukkitCommandManager.class.getPackage().toString());
+        commandManager = new CommandManager(getPlugin());
 
         // Replacements
-        commandManager.getCommandReplacements().addReplacement("guicraft", "guicraft|ui|gc");
+//        commandManager.getCommandReplacements().addReplacement("guicraft", "guicraft|ui|gc");
 
         // Tab Completions
-        commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> {
-            String file = c.getConfig("file");
-            String path = c.getConfig("path");
-
-            PackageResolver resolver = localConfig.getResolver(file, path);
-            return new LinkedHashSet<>(resolver.getKeys());
-        });
-        commandManager.getCommandCompletions().registerAsyncCompletion("package", c -> {
-            String file = c.getConfig("file");
-            String append = c.getConfig("append");
-
-            PackageResolver resolver = localConfig.getResolver(file);
-            return new LinkedHashSet<>(resolver.getPackages());
-        });
+//        commandManager.getCommandCompletions().registerAsyncCompletion("config", c -> {
+//            String file = c.getConfig("file");
+//            String path = c.getConfig("path");
+//
+//            PackageResolver resolver = localConfig.getResolver(file, path);
+//            return new LinkedHashSet<>(resolver.getKeys());
+//        });
+//        commandManager.getCommandCompletions().registerAsyncCompletion("package", c -> {
+//            String file = c.getConfig("file");
+//            String append = c.getConfig("append");
+//
+//            PackageResolver resolver = localConfig.getResolver(file);
+//            return new LinkedHashSet<>(resolver.getPackages());
+//        });
     }
 
     private void initComponents() {

@@ -20,7 +20,6 @@ package au.com.grieve.guicraft.item;
 
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.config.PackageConfiguration;
-import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.config.PackageSection;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.item.commands.BukkitCommands;
@@ -30,7 +29,6 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 
 public class Item {
@@ -44,18 +42,18 @@ public class Item {
         GUICraft gui = GUICraft.getInstance();
 
         // Command Replacements
-        gui.getCommandManager().getCommandReplacements().addReplacement("item", "item|i");
-        gui.getCommandManager().getCommandReplacements().addReplacement("itemsave", "save|s");
+//        gui.getCommandManager().getCommandReplacements().addReplacement("item", "item|i");
+//        gui.getCommandManager().getCommandReplacements().addReplacement("itemsave", "save|s");
 
         // Tab Completions
-        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("item.config", c -> {
-            PackageResolver resolver = gui.getLocalConfig().getResolver("item");
-            return new LinkedHashSet<>(resolver.getKeys());
-        });
-        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("item.package", c -> {
-            PackageResolver resolver = gui.getLocalConfig().getResolver("item");
-            return new LinkedHashSet<>(resolver.getPackages());
-        });
+//        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("item.config", c -> {
+//            PackageResolver resolver = gui.getLocalConfig().getResolver("item");
+//            return new LinkedHashSet<>(resolver.getKeys());
+//        });
+//        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("item.package", c -> {
+//            PackageResolver resolver = gui.getLocalConfig().getResolver("item");
+//            return new LinkedHashSet<>(resolver.getPackages());
+//        });
 
         // Actions
 //        gui.registerAction("open", new OpenAction());

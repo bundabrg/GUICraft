@@ -18,28 +18,30 @@
 
 package au.com.grieve.bcf;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class TreeNode<T> implements Iterable<TreeNode<T>> {
 
     public T data;
     public TreeNode<T> parent;
-    public Set<TreeNode<T>> children;
-    private Set<TreeNode<T>> elementsIndex;
+    public List<TreeNode<T>> children;
+    private List<TreeNode<T>> elementsIndex;
 
     public TreeNode() {
         this.data = null;
-        this.children = new HashSet<>();
-        this.elementsIndex = new HashSet<>();
+        this.children = new ArrayList<>();
+        this.elementsIndex = new ArrayList<>();
         this.elementsIndex.add(this);
     }
 
     public TreeNode(T data) {
         this.data = data;
-        this.children = new HashSet<>();
-        this.elementsIndex = new HashSet<>();
+        this.children = new ArrayList<>();
+        this.elementsIndex = new ArrayList<>();
         this.elementsIndex.add(this);
     }
 
@@ -80,6 +82,13 @@ public class TreeNode<T> implements Iterable<TreeNode<T>> {
         }
 
         return null;
+    }
+
+    public boolean contains(T data) {
+        return children.stream()
+                .filter(c -> c.data.equals(data))
+                .findFirst()
+                .orElse(null) != null;
     }
 
     @Override

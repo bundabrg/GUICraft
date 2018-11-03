@@ -27,8 +27,6 @@ import org.bukkit.command.CommandMap;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.Reader;
-import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -46,7 +44,7 @@ public class CommandManager {
 
     private final JavaPlugin plugin;
     private final CommandMap commandMap;
-    private List<TreeNode<ArgData>> args = new ArrayList<>();
+    private List<ArgumentParser> parsers = new ArrayList<>();
     private Map<String, RootCommand> commands = new HashMap<>();
 
     public CommandManager(JavaPlugin plugin) {
@@ -102,84 +100,42 @@ public class CommandManager {
             }
         }
 
-        // Get Root Node, if any
-        TreeNode<ArgData> rootNode = null;
+        // Get Parser, if any
+        ArgumentParser parser = null;
         if (rootCommand != null && commands.containsKey(rootCommand)) {
-            rootNode = commands.get(rootCommand).getArgData();
+            parser = commands.get(rootCommand).getParser();
         }
 
-        // No root node, create it
-        if (rootNode == null) {
-            rootNode = new TreeNode<>();
-            args.add(rootNode);
-            System.err.println("RootCommand: " + rootCommand);
+        // No parser? Create it
+        if (parser == null) {
+            parser = new ArgumentParser();
+            parsers.add(parser);
             if (rootCommand != null) {
                 String[] aliases = rootCommand.split("\\|");
                 if (aliases.length == 0) {
                     aliases = new String[]{cmd.getClass().getSimpleName().toLowerCase()};
                 }
-                RootCommand command = new RootCommand(rootNode, aliases[0]);
+                RootCommand command = new RootCommand(parser, aliases[0]);
                 command.setAliases(Arrays.asList(aliases));
-                System.err.println("Registering: " + aliases[0] + " - " + plugin.getName().toLowerCase() + " - " + command);
                 commandMap.register(aliases[0], plugin.getName().toLowerCase(), command);
 
                 commands.put(rootCommand, command);
             }
         }
 
-        List<TreeNode<ArgData>> currentNodes = new ArrayList<>();
-        currentNodes.add(rootNode);
-
-        // Build parent args
-        StringReader reader = new StringReader(parentArg);
-        currentNodes = addToArgs(reader, currentNodes);
-
-        // Add each method to args tree
+        // Add each method to parser
         for (Method m : cmd.getClass().getDeclaredMethods()) {
             Arg argAnnotation = m.getAnnotation(Arg.class);
 
+
             if (argAnnotation != null && argAnnotation.value().trim().length() > 0) {
-                reader = new StringReader(argAnnotation.value().trim());
-                List<TreeNode<ArgData>> methodNodes = addToArgs(reader, new ArrayList<>(currentNodes));
+                for (TreeNode<ArgData> t : parser.createNode(parentArg + " " + argAnnotation.value().trim())) {
+                    t.data.method = m;
+                }
             }
         }
 
         // Debug
-        for( TreeNode<ArgData> r : args) {
-            for ( TreeNode<ArgData> t : r) {
-                if (t.isLeaf() && !t.isRoot()) {
-                    TreeNode<ArgData> current = t;
-                    List<ArgData> a = new ArrayList<>();
-                    while (t != null) {
-                        a.add(t.data);
-                        t = t.parent;
-                    }
-
-
-
-                    System.err.println("--> " + String.join(",", a.stream()
-                            .filter(Objects::nonNull)
-                            .map(l -> l.arg)
-                            .collect(Collectors.toList())));
-                }
-            }
-        }
+        System.err.println("\n" + parser.walkTree());
     }
-
-    private List<TreeNode<ArgData>> addToArgs(Reader reader, List<TreeNode<ArgData>> currentNodes) {
-
-        for (List<ArgData> argDataList : ArgData.parse(reader)) {
-            List<TreeNode<ArgData>> newCurrent = new ArrayList<>();
-            for (TreeNode<ArgData> node : currentNodes) {
-                for (ArgData argData : argDataList) {
-                    if (!node.contains(argData)) {
-                        newCurrent.add(node.addChild(argData));
-                    }
-                }
-            }
-            currentNodes = newCurrent;
-        }
-        return currentNodes;
-    }
-
 }

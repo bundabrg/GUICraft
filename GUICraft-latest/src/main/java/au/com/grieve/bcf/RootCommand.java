@@ -22,17 +22,26 @@ import lombok.Getter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
+import java.util.List;
+
 public class RootCommand extends Command {
     @Getter
-    private TreeNode<ArgData> argData;
+    private ArgumentParser parser;
 
-    protected RootCommand(TreeNode<ArgData> argData, String name) {
+    protected RootCommand(ArgumentParser parser, String name) {
         super(name);
-        this.argData = argData;
+        this.parser = parser;
     }
 
     @Override
-    public boolean execute(CommandSender commandSender, String s, String[] strings) {
+    public boolean execute(CommandSender commandSender, String alias, String[] args) {
+        // List<Object> parser.getData(sender, args);
+        // Reflect into method
         return false;
+    }
+
+    @Override
+    public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
+        return parser.getAlternatives(sender, args);
     }
 }

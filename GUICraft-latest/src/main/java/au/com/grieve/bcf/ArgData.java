@@ -18,15 +18,12 @@
 
 package au.com.grieve.bcf;
 
-import com.sun.crypto.provider.RC2Parameters;
 import lombok.Data;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +110,7 @@ public class ArgData {
 
                 switch(state) {
                     case NAME:
-                        switch(" (|".indexOf(c)) {
+                        switch (" (,".indexOf(c)) {
                             case 0:
                                 if (name.length() > 0) {
                                     result.add(new ArgData(name.toString()));
@@ -121,6 +118,10 @@ public class ArgData {
                                 }
                                 break;
                             case 1:
+                                if (name.length() > 0) {
+                                    result.add(new ArgData(name.toString()));
+                                }
+
                                 state = State.PARAM_KEY;
                                 parameters = new HashMap<>();
                                 key = new StringBuilder();
@@ -205,19 +206,12 @@ public class ArgData {
                         }
                         break;
                     case PARAM_END:
-                        switch(" |".indexOf(c)) {
+                        switch (" ".indexOf(c)) {
                             case 0:
-                                ArgData argData = new ArgData(name.toString());
-                                argData.parameters = parameters;
-                                result.add(argData);
+                                for (ArgData a : result) {
+                                    a.parameters = parameters;
+                                }
                                 return result;
-                            case 1:
-                                argData = new ArgData(name.toString());
-                                argData.parameters = parameters;
-                                result.add(argData);
-                                name = new StringBuilder();
-                                state = State.NAME;
-                                break;
                         }
                         break;
                 }

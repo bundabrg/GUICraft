@@ -18,6 +18,7 @@
 
 package au.com.grieve.bcf;
 
+import au.com.grieve.bcf.parsers.Literal;
 import lombok.Getter;
 import org.bukkit.command.CommandSender;
 
@@ -30,6 +31,8 @@ import java.util.List;
 public class ArgumentParser {
     @Getter
     private TreeNode<ArgData> data = new TreeNode<>();
+
+    private Parser defaultParser = new Literal();
 
 
     public String walkTree() {
@@ -96,7 +99,8 @@ public class ArgumentParser {
             return result;
         }
 
-        if (!node.isRoot()) {
+        if (!node.isRoot() && node.data != null && node.data.arg != null) {
+            if (node.data)
 
             // Get Alternatives from parsers
             boolean passCheck = false;

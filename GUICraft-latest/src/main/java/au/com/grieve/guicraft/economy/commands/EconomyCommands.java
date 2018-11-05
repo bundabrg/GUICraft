@@ -28,7 +28,7 @@ import org.bukkit.command.CommandSender;
 public class EconomyCommands extends GUICraftCommand {
 
 
-    @Arg("buy|b @item.config @player.offline(switch=player|p, required=false, default=self) @double @int")
+    @Arg("buy|b @item.config @player(switch=player|p, required=false, default=self) @double @int")
     @Description("Buy Item")
     public void onBuy(CommandSender sender, String itemPath, OfflinePlayer player, double cost, int qty) {
         System.err.println(sender + ", " + itemPath + ", " + player + ", " + cost + ", " + qty);

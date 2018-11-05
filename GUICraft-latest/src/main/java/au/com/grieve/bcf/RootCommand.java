@@ -35,8 +35,10 @@ public class RootCommand extends Command {
 
     @Override
     public boolean execute(CommandSender commandSender, String alias, String[] args) {
-        // List<Object> parser.getData(sender, args);
+         List<Object> result = parser.getData(sender, args);
         // Reflect into method
+        System.err.println("Result: " + result);
+
         return false;
     }
 

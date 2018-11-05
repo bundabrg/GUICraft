@@ -18,6 +18,10 @@
 
 package au.com.grieve.guicraft.item;
 
+import au.com.grieve.bcf.ArgData;
+import au.com.grieve.bcf.Parser;
+import au.com.grieve.bcf.TreeNode;
+import au.com.grieve.bcf.ValidArgument;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageSection;
@@ -25,11 +29,14 @@ import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.item.commands.BukkitCommands;
 import au.com.grieve.guicraft.item.types.BukkitItemType;
 import lombok.Getter;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Item {
     @Getter
@@ -46,14 +53,56 @@ public class Item {
 //        gui.getCommandManager().getCommandReplacements().addReplacement("itemsave", "save|s");
 
         // Tab Completions
-//        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("item.config", c -> {
-//            PackageResolver resolver = gui.getLocalConfig().getResolver("item");
-//            return new LinkedHashSet<>(resolver.getKeys());
-//        });
-//        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("item.package", c -> {
-//            PackageResolver resolver = gui.getLocalConfig().getResolver("item");
-//            return new LinkedHashSet<>(resolver.getPackages());
-//        });
+        gui.getCommandManager().registerParser("item.config", new Parser() {
+            @Override
+            public ValidArgument isValid(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
+                String arg = args.remove(0);
+
+                boolean constrain = node.data.getParameters().getOrDefault("constrain", "false").equalsIgnoreCase("true");
+
+                if (args.size() == 0 || constrain) {
+                    List<String> result = gui.getLocalConfig().getResolver("item").getKeys().stream()
+                            .filter(s -> s.startsWith(arg))
+                            .collect(Collectors.toList());
+
+                    if (result.size() == 0) {
+                        return ValidArgument.INVALID();
+                    }
+
+                    if (args.size() == 0) {
+                        return ValidArgument.PARTIAL(result);
+                    }
+                }
+
+                return ValidArgument.VALID();
+            }
+        });
+
+        gui.getCommandManager().registerParser("item.package", new Parser() {
+            @Override
+            public ValidArgument isValid(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
+                String arg = args.remove(0);
+
+                boolean constrain = node.data.getParameters().getOrDefault("constrain", "false").equalsIgnoreCase("true");
+
+                if (args.size() == 0 || constrain) {
+                    List<String> result = gui.getLocalConfig().getResolver("item").getPackages().stream()
+                            .filter(s -> s.startsWith(arg))
+                            .collect(Collectors.toList());
+
+                    if (result.size() == 0) {
+                        return ValidArgument.INVALID();
+                    }
+
+                    if (args.size() == 0) {
+                        return ValidArgument.PARTIAL(result);
+                    }
+                }
+
+                return ValidArgument.VALID();
+            }
+        });
+
 
         // Actions
 //        gui.registerAction("open", new OpenAction());

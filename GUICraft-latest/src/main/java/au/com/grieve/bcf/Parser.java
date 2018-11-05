@@ -21,7 +21,10 @@ package au.com.grieve.bcf;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
+import java.util.Map;
 
 public interface Parser {
     ValidArgument isValid(CommandSender sender, List<String> args, TreeNode<ArgData> node);
+
+    List<Object> execute(CommandSender sender, List<String> args, TreeNode<ArgData> node);
 }

@@ -28,7 +28,7 @@ import org.bukkit.entity.Player;
 @Arg("menu|m")
 public class MenuCommands extends GUICraftCommand {
 
-    @Arg("open|o @menu.config @player.online(switch=player|p, required=false, default=self) @menu.type.proxy")
+    @Arg("open|o @menu.config @player(switch=player|p, required=false, default=self, filter=online) @menu.type.proxy")
     @Description("Open Menu")
     public void onOpen(CommandSender sender, String path, Player player) {
         System.err.println("onOpen: " + sender + ", " + path + ", " + player);

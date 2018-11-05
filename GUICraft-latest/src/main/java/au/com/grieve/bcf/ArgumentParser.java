@@ -18,7 +18,6 @@
 
 package au.com.grieve.bcf;
 
-import au.com.grieve.bcf.parsers.Literal;
 import lombok.Getter;
 import org.bukkit.command.CommandSender;
 
@@ -29,10 +28,20 @@ import java.util.Collections;
 import java.util.List;
 
 public class ArgumentParser {
+    private final CommandManager manager;
     @Getter
     private TreeNode<ArgData> data = new TreeNode<>();
 
-    private Parser defaultParser = new Literal();
+    public ArgumentParser(CommandManager manager) {
+        this.manager = manager;
+    }
+
+    public ArgumentParser(CommandManager manager, String path) {
+        this.manager = manager;
+        if (path != null) {
+            createNode(path);
+        }
+    }
 
 
     public String walkTree() {
@@ -64,7 +73,6 @@ public class ArgumentParser {
      * Create node(s) designated by path including any missing parent nodes
      */
     public List<TreeNode<ArgData>> createNode(String path) {
-        System.err.println("Creating Node: " + path);
         List<TreeNode<ArgData>> currentNodes = Collections.singletonList(data);
 
         StringReader reader = new StringReader(path);
@@ -88,6 +96,15 @@ public class ArgumentParser {
         return currentNodes;
     }
 
+    public List<Object> getData(CommandSender sender, String[] args) {
+        return getData(sender, Arrays.asList(args), data);
+    }
+
+    private List<Object> getData(CommandSender, List<String> args, TreeNode<ArgData> node) {
+
+    }
+
+
     public List<String> getAlternatives(CommandSender sender, String[] args) {
         return getAlternatives(sender, Arrays.asList(args), data);
     }
@@ -100,50 +117,20 @@ public class ArgumentParser {
         }
 
         if (!node.isRoot() && node.data != null && node.data.arg != null) {
-            if (node.data)
+            Parser parser = manager.getParser(node.data.arg);
 
-            // Get Alternatives from parsers
-            boolean passCheck = false;
-            for (String alias : node.data.arg.split("\\|")) {
-                switch (alias.substring(0, 1)) {
-                    case "@":
-                        // Method.
-                        // TODO: Proper parser. For now accept any input with ourself as the alternative
-                        if (args.size() > 0) {
-                            String arg = args.remove(0);
-                            passCheck = true;
-                            if (args.size() == 0 && alias.startsWith(arg)) {
-                                result.add(alias);
-                            }
-                        }
-                        break;
-                    case "*":
-                        // Match anything for 1 arg
-                        if (args.size() > 0) {
-                            String arg = args.remove(0);
-                            passCheck = true;
-                            if (args.size() == 0) {
-                                result.add(arg);
-                            }
-                        }
-                        break;
-                    default:
-                        // Literal. Must start with
-                        if (args.size() > 0 && alias.startsWith(args.get(0))) {
-                            String arg = args.remove(0);
-                            passCheck = true;
-                            if (args.size() == 0) {
-                                result.add(alias);
-                            }
-                        }
-                }
-                if (passCheck) {
-                    break;
-                }
+            if (parser == null) {
+                return result;
             }
 
-            if (!passCheck) {
+            ValidArgument valid = parser.isValid(sender, args, node);
+
+            if (valid.isInvalid()) {
                 return result;
+            }
+
+            if (valid.isPartial()) {
+                result.addAll(valid.getPartials());
             }
         }
 

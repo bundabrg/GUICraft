@@ -20,6 +20,8 @@ package au.com.grieve.bcf;
 
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Command;
+import au.com.grieve.bcf.parsers.Literal;
+import au.com.grieve.bcf.parsers.Player;
 import au.com.grieve.bcf.utils.ReflectUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -30,7 +32,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,12 +45,16 @@ public class CommandManager {
 
     private final JavaPlugin plugin;
     private final CommandMap commandMap;
-    private List<ArgumentParser> parsers = new ArrayList<>();
     private Map<String, RootCommand> commands = new HashMap<>();
+    private Map<String, Parser> parsers = new HashMap<>();
+    private Parser defaultParser = new Literal();
 
     public CommandManager(JavaPlugin plugin) {
         this.plugin = plugin;
         this.commandMap = hookCommandMap();
+
+        // Register Default Parsers
+        registerParser("player", new Player());
 
 
     }
@@ -108,8 +113,7 @@ public class CommandManager {
 
         // No parser? Create it
         if (parser == null) {
-            parser = new ArgumentParser();
-            parsers.add(parser);
+            parser = createParser();
             if (rootCommand != null) {
                 String[] aliases = rootCommand.split("\\|");
                 if (aliases.length == 0) {
@@ -138,4 +142,25 @@ public class CommandManager {
         // Debug
         System.err.println("\n" + parser.walkTree());
     }
+
+    public ArgumentParser createParser() {
+        return createParser(null);
+    }
+
+    public ArgumentParser createParser(String path) {
+        return new ArgumentParser(this, path);
+    }
+
+    public void registerParser(String name, Parser parser) {
+        this.parsers.put("@" + name, parser);
+    }
+
+    public void unregisterParser(String name) {
+        this.parsers.remove("@" + name);
+    }
+
+    public Parser getParser(String name) {
+        return parsers.getOrDefault(name, defaultParser);
+    }
+
 }

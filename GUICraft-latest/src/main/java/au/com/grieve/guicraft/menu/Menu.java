@@ -18,18 +18,27 @@
 
 package au.com.grieve.guicraft.menu;
 
+import au.com.grieve.bcf.ArgData;
+import au.com.grieve.bcf.Parser;
+import au.com.grieve.bcf.TreeNode;
+import au.com.grieve.bcf.ValidArgument;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.config.PackageConfiguration;
+import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.config.PackageSection;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.menu.commands.MenuCommands;
 import au.com.grieve.guicraft.menu.types.InventoryMenu;
 import lombok.Getter;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Menu {
 
@@ -46,15 +55,55 @@ public class Menu {
 //        gui.getCommandManager().getCommandReplacements().addReplacement("menu", "menu|m");
 
         // Tab Completions
-//        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("menu.config", c -> {
-//            System.err.println(c.getInput());
-//            PackageResolver resolver = gui.getLocalConfig().getResolver("menu");
-//            return new LinkedHashSet<>(resolver.getKeys());
-//        });
-//        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("menu.package", c -> {
-//            PackageResolver resolver = gui.getLocalConfig().getResolver("menu");
-//            return new LinkedHashSet<>(resolver.getPackages());
-//        });
+        gui.getCommandManager().registerParser("menu.config", new Parser() {
+            @Override
+            public ValidArgument isValid(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
+                String arg = args.remove(0);
+
+                boolean constrain = node.data.getParameters().getOrDefault("constrain", "false").equalsIgnoreCase("true");
+
+                if (args.size() == 0 || constrain) {
+                    List<String> result = gui.getLocalConfig().getResolver("menu").getKeys().stream()
+                            .filter(s -> s.startsWith(arg))
+                            .collect(Collectors.toList());
+
+                    if (result.size() == 0) {
+                        return ValidArgument.INVALID();
+                    }
+
+                    if (args.size() == 0) {
+                        return ValidArgument.PARTIAL(result);
+                    }
+                }
+
+                return ValidArgument.VALID();
+            }
+        });
+
+        gui.getCommandManager().registerParser("menu.package", new Parser() {
+            @Override
+            public ValidArgument isValid(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
+                String arg = args.remove(0);
+
+                boolean constrain = node.data.getParameters().getOrDefault("constrain", "false").equalsIgnoreCase("true");
+
+                if (args.size() == 0 || constrain) {
+                    List<String> result = gui.getLocalConfig().getResolver("menu").getPackages().stream()
+                            .filter(s -> s.startsWith(arg))
+                            .collect(Collectors.toList());
+
+                    if (result.size() == 0) {
+                        return ValidArgument.INVALID();
+                    }
+
+                    if (args.size() == 0) {
+                        return ValidArgument.PARTIAL(result);
+                    }
+                }
+
+                return ValidArgument.VALID();
+            }
+        });
 
         // Menu Types
         registerMenuType("inventory", InventoryMenu.class);

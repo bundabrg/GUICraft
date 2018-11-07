@@ -19,17 +19,14 @@
 package au.com.grieve.bcf.parsers;
 
 import au.com.grieve.bcf.ArgData;
+import au.com.grieve.bcf.ParseResult;
 import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.TreeNode;
-import au.com.grieve.bcf.ValidArgument;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.HumanEntity;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,49 +34,47 @@ import java.util.stream.Collectors;
  * Name of a player
  *
  * Parameters:
- *   filter:
+ *   mode:
  *     any - (default) Any player
  *     online - Only online players
- *   constrain:
- *     false - (default) accept any input
- *     true - Only accept a player by filter
  */
-public class Player implements Parser {
+public class Player extends Parser {
     @Override
-    public ValidArgument isValid(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
-        if (args.size() == 0) {
-            return ValidArgument.INVALID();
+    public ParseResult resolve(CommandSender sender, List<String> args, ArgData data) {
+        String arg = args.size() > 0 ? args.remove(0) : data.getParameters().get("default");
+
+        if (arg == null) {
+            return null;
         }
 
-        String filter = node.data.getParameters().getOrDefault("filter", "any");
-        boolean constrain = node.data.getParameters().getOrDefault("constrain", "false").equalsIgnoreCase("true");
-        String arg = args.remove(0);
+        ParseResult result = new ParseResult(data, arg);
 
-        if (args.size() == 0 || constrain) {
-            List<String> players;
-            switch(filter) {
-                case "online":
-                    players = Bukkit.getOnlinePlayers().stream()
-                            .map(HumanEntity::getName)
-                            .filter(s -> s.startsWith(arg))
-                            .collect(Collectors.toList());
-                    break;
-                default:
-                    players = Arrays.stream(Bukkit.getOfflinePlayers())
-                            .map(OfflinePlayer::getName)
-                            .filter(s -> s.startsWith(arg))
-                            .collect(Collectors.toList());
-            }
+        switch (data.getParameters().getOrDefault("mode", "any")) {
+            case "online":
+                result.getCompletions().addAll(Bukkit.getOnlinePlayers().stream()
+                        .map(HumanEntity::getName)
+                        .filter(s -> s.startsWith(arg))
+                        .limit(20)
+                        .collect(Collectors.toList()));
 
-            if (players.size() == 0) {
-                return ValidArgument.INVALID();
-            }
+                result.setResult(Bukkit.getOnlinePlayers().stream()
+                        .filter(p -> p.getName().equals(arg))
+                        .findFirst()
+                        .orElse(null));
+                break;
+            default:
+                result.getCompletions().addAll(Arrays.stream(Bukkit.getOfflinePlayers())
+                        .map(OfflinePlayer::getName)
+                        .filter(s -> s.startsWith(arg))
+                        .limit(20)
+                        .collect(Collectors.toList()));
 
-            if (args.size() == 0) {
-                return ValidArgument.PARTIAL(players);
-            }
+                result.setResult(Arrays.stream(Bukkit.getOfflinePlayers())
+                        .filter(p -> p.getName().equals(arg))
+                        .findFirst()
+                        .orElse(null));
         }
 
-        return ValidArgument.VALID();
+        return result;
     }
 }

@@ -21,10 +21,8 @@ package au.com.grieve.guicraft.menu;
 import au.com.grieve.bcf.ArgData;
 import au.com.grieve.bcf.Parser;
 import au.com.grieve.bcf.TreeNode;
-import au.com.grieve.bcf.ValidArgument;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.config.PackageConfiguration;
-import au.com.grieve.guicraft.config.PackageResolver;
 import au.com.grieve.guicraft.config.PackageSection;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.menu.commands.MenuCommands;
@@ -35,7 +33,6 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,51 +54,46 @@ public class Menu {
         // Tab Completions
         gui.getCommandManager().registerParser("menu.config", new Parser() {
             @Override
-            public ValidArgument isValid(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
-                String arg = args.remove(0);
-
-                boolean constrain = node.data.getParameters().getOrDefault("constrain", "false").equalsIgnoreCase("true");
-
-                if (args.size() == 0 || constrain) {
-                    List<String> result = gui.getLocalConfig().getResolver("menu").getKeys().stream()
-                            .filter(s -> s.startsWith(arg))
-                            .collect(Collectors.toList());
-
-                    if (result.size() == 0) {
-                        return ValidArgument.INVALID();
-                    }
-
-                    if (args.size() == 0) {
-                        return ValidArgument.PARTIAL(result);
-                    }
+            public void resolve(CommandSender sender, List<String> args, TreeNode<ArgData> node, List<String> alternatives, List<Object> result) {
+                if (args.size() == 0) {
+                    return;
                 }
 
-                return ValidArgument.VALID();
+                String arg = args.remove(0);
+
+                alternatives.addAll(gui.getLocalConfig().getResolver("menu").getKeys().stream()
+                        .filter(s -> s.startsWith(arg))
+                        .limit(20)
+                        .collect(Collectors.toList()));
+
+                result.addAll(gui.getLocalConfig().getResolver("menu").getKeys().stream()
+                        .filter(s -> s.equals(arg))
+                        .limit(1)
+                        .collect(Collectors.toList()));
             }
         });
 
         gui.getCommandManager().registerParser("menu.package", new Parser() {
             @Override
-            public ValidArgument isValid(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
-                String arg = args.remove(0);
-
-                boolean constrain = node.data.getParameters().getOrDefault("constrain", "false").equalsIgnoreCase("true");
-
-                if (args.size() == 0 || constrain) {
-                    List<String> result = gui.getLocalConfig().getResolver("menu").getPackages().stream()
-                            .filter(s -> s.startsWith(arg))
-                            .collect(Collectors.toList());
-
-                    if (result.size() == 0) {
-                        return ValidArgument.INVALID();
-                    }
-
-                    if (args.size() == 0) {
-                        return ValidArgument.PARTIAL(result);
-                    }
+            public void resolve(CommandSender sender, List<String> args, TreeNode<ArgData> node, List<String> alternatives, List<Object> result) {
+                if (args.size() == 0) {
+                    return;
                 }
 
-                return ValidArgument.VALID();
+                String arg = args.remove(0);
+                int index = arg.lastIndexOf('.');
+                String pkg = index == -1 ? arg : arg.substring(0, index);
+
+                alternatives.addAll(gui.getLocalConfig().getResolver("menu").getPackages().stream()
+                        .filter(s -> s.startsWith(pkg))
+                        .limit(20)
+                        .collect(Collectors.toList()));
+
+                result.addAll(gui.getLocalConfig().getResolver("menu").getPackages().stream()
+                        .filter(s -> s.equals(pkg) && index > arg.length())
+                        .limit(1)
+                        .map(s -> arg)
+                        .collect(Collectors.toList()));
             }
         });
 

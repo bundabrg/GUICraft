@@ -18,18 +18,35 @@
 
 package au.com.grieve.bcf;
 
-import au.com.grieve.bcf.exceptions.ParserException;
-import org.bukkit.command.CommandSender;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public abstract class Parser {
+public class ParseResult {
 
-    /**
-     * Return a list of resolved objects and their text names based upon the arguments provided.
-     */
-    public abstract ParseResult resolve(CommandSender sender, List<String> args, ArgData data) throws ParserException;
+    @Getter
+    private ArgData data;
 
-//    public abstract List<String> complete(CommandSender sender, List<String> args, ArgData data)  throws ParserException;
+    @Getter
+    private List<String> args = new ArrayList<>();
+
+    @Getter
+    private List<String> completions = new ArrayList<>();
+
+    @Getter
+    @Setter
+    private Object result;
+
+    public ParseResult(ArgData data, String arg) {
+        this(data, Collections.singletonList(arg));
+    }
+
+    public ParseResult(ArgData data, List<String> args) {
+        this.data = data;
+        this.args = args;
+    }
 
 }

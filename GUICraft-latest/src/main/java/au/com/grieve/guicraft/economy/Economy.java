@@ -21,7 +21,6 @@ package au.com.grieve.guicraft.economy;
 import au.com.grieve.bcf.ArgData;
 import au.com.grieve.bcf.Parser;
 import au.com.grieve.bcf.TreeNode;
-import au.com.grieve.bcf.ValidArgument;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.economy.commands.EconomyCommands;
 import au.com.grieve.guicraft.economy.types.VaultEconomy;
@@ -31,7 +30,6 @@ import org.bukkit.command.CommandSender;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class Economy {
     @Getter
@@ -49,18 +47,16 @@ public class Economy {
 //        gui.getCommandManager().getCommandReplacements().addReplacement("economy", "economy|e");
 
         // Tab Completions
-        gui.getCommandManager().registerParser("economy.types", new Parser() {
+        gui.getCommandManager().registerParser("economy.type", new Parser() {
             @Override
-            public ValidArgument isValid(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
-                String arg = args.remove(0);
+            public void resolve(CommandSender sender, List<String> args, TreeNode<ArgData> node, List<String> alternatives, List<Object> result) {
+                if (args.size() == 0) {
+                    return;
+                }
 
-                return ValidArgument.VALID();
+                String arg = args.remove(0);
             }
         });
-
-//        gui.getCommandManager().getCommandCompletions().registerAsyncCompletion("economy_types", c -> {
-//            return new ArrayList<>();
-//        });
 
         // Economy Types
         VaultEconomy.register();

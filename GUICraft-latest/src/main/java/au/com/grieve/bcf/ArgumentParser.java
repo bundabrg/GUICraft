@@ -18,6 +18,8 @@
 
 package au.com.grieve.bcf;
 
+import au.com.grieve.bcf.exceptions.ParserArgumentException;
+import au.com.grieve.bcf.exceptions.ParserEndException;
 import lombok.Getter;
 import org.bukkit.command.CommandSender;
 
@@ -96,20 +98,62 @@ public class ArgumentParser {
         return currentNodes;
     }
 
-    public List<Object> getData(CommandSender sender, String[] args) {
-        return getData(sender, Arrays.asList(args), data);
+//    public List<Object> getData(CommandSender sender, String[] args) {
+//        return getData(sender, Arrays.asList(args), data);
+//    }
+//
+//    private List<Object> getData(CommandSender, List<String> args, TreeNode<ArgData> node) {
+//
+//    }
+
+    public List<Object> resolve(CommandSender sender, String[] args) {
+        return resolve(sender, Arrays.asList(args), data);
     }
 
-    private List<Object> getData(CommandSender, List<String> args, TreeNode<ArgData> node) {
+    List<Object> resolve(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
+        List<Object> result = new ArrayList<>();
 
+        if (args.size() == 0) {
+            return result;
+        }
+
+        if (!node.isRoot() && node.data != null && node.data.arg != null) {
+            Parser parser = manager.getParser(node.data.arg);
+
+            if (parser == null) {
+                return result;
+            }
+
+            Object data = null;
+            try {
+                data = parser.resolve(sender, args, node.data);
+            } catch (ParserEndException e) {
+                return result;
+            } catch (ParserArgumentException e) {
+                e.printStackTrace();
+            }
+
+            if (data == null) {
+                return result;
+            }
+
+            result.add(data.entrySet().iterator().next());
+        }
+
+        // Recurse
+        for (TreeNode<ArgData> n : node.children) {
+            result.addAll(resolve(sender, new ArrayList<>(args), n));
+        }
+
+        return result;
     }
 
 
-    public List<String> getAlternatives(CommandSender sender, String[] args) {
-        return getAlternatives(sender, Arrays.asList(args), data);
+    public List<String> complete(CommandSender sender, String[] args) {
+        return complete(sender, Arrays.asList(args), data);
     }
 
-    private List<String> getAlternatives(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
+    List<String> complete(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
         List<String> result = new ArrayList<>();
 
         if (args.size() == 0) {
@@ -123,20 +167,21 @@ public class ArgumentParser {
                 return result;
             }
 
-            ValidArgument valid = parser.isValid(sender, args, node);
+            List<String> data = parser.complete(sender, args, node);
 
-            if (valid.isInvalid()) {
+            if (data == null) {
                 return result;
             }
 
-            if (valid.isPartial()) {
-                result.addAll(valid.getPartials());
+            if (args.size() == 0) {
+                result.addAll(data);
+                return result;
             }
         }
 
         // Recurse
         for (TreeNode<ArgData> n : node.children) {
-            result.addAll(getAlternatives(sender, new ArrayList<>(args), n));
+            result.addAll(complete(sender, new ArrayList<>(args), n));
         }
 
         return result;

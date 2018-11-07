@@ -34,16 +34,21 @@ public class RootCommand extends Command {
     }
 
     @Override
-    public boolean execute(CommandSender commandSender, String alias, String[] args) {
-         List<Object> result = parser.getData(sender, args);
-        // Reflect into method
-        System.err.println("Result: " + result);
+    public boolean execute(CommandSender sender, String alias, String[] args) {
+        MYOBJ data = parser.resolve(sender, args);
+
+
+//        List<Object> result = parser.resolve(sender, args);
+//         Reflect into method
+//        System.err.println("Result: " + result);
 
         return false;
     }
 
     @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
-        return parser.getAlternatives(sender, args);
+        List<String> result = parser.complete(sender, args);
+        System.err.println("Complete: " + result);
+        return result;
     }
 }

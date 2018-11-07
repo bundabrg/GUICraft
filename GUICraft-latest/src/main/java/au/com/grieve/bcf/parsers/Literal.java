@@ -19,12 +19,10 @@
 package au.com.grieve.bcf.parsers;
 
 import au.com.grieve.bcf.ArgData;
+import au.com.grieve.bcf.ParseResult;
 import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.TreeNode;
-import au.com.grieve.bcf.ValidArgument;
 import org.bukkit.command.CommandSender;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,34 +34,32 @@ import java.util.List;
  * If * is provided then it will accept any input
  * Will use the first matching alias as an alternative for partials
  */
-public class Literal implements Parser {
+public class Literal extends Parser {
     @Override
-    public ValidArgument isValid(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
-        if (args.size() == 0) {
-            return ValidArgument.INVALID();
+    public ParseResult resolve(CommandSender sender, List<String> args, ArgData data) {
+        String arg = args.size() > 0 ? args.remove(0) : data.getParameters().get("default");
+
+        if (arg == null) {
+            return null;
         }
 
-        for (String alias : node.data.getArg().split("\\|")) {
-            // Handle Wildcard
+        ParseResult result = new ParseResult(data, arg);
+
+        for (String alias : data.getArg().split("\\|")) {
             if (alias.equals("*")) {
-                args.remove(0);
-                return ValidArgument.VALID();
+                result.getCompletions().add(arg);
+                result.setResult(arg);
+                return result;
             }
 
-            if (!alias.startsWith(args.get(0))) {
-                continue;
+            if (alias.startsWith(arg)) {
+                result.getCompletions().add(alias);
+                if (alias.equals(arg)) {
+                    result.setResult(arg);
+                }
+                return result;
             }
-
-            String arg = args.remove(0);
-
-            // If its the last argument then return as a partial
-            if (args.size() == 0) {
-                return ValidArgument.PARTIAL(Collections.singletonList(alias));
-            }
-
-            return ValidArgument.VALID();
         }
-
-        return ValidArgument.INVALID();
+        return null;
     }
 }

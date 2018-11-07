@@ -16,20 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf;
+package au.com.grieve.bcf.exceptions;
 
-import au.com.grieve.bcf.exceptions.ParserException;
-import org.bukkit.command.CommandSender;
+public class ParserException extends Exception {
 
-import java.util.List;
+    public ParserException() {
+        this(null, null);
+    }
 
-public abstract class Parser {
+    public ParserException(String message) {
+        this(message, null);
+    }
 
-    /**
-     * Return a list of resolved objects and their text names based upon the arguments provided.
-     */
-    public abstract ParseResult resolve(CommandSender sender, List<String> args, ArgData data) throws ParserException;
-
-//    public abstract List<String> complete(CommandSender sender, List<String> args, ArgData data)  throws ParserException;
-
+    public ParserException(String message, Throwable err) {
+        super(message, err);
+    }
 }

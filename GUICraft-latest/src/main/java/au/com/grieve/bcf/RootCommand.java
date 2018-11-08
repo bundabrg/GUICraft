@@ -23,6 +23,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RootCommand extends Command {
     @Getter
@@ -35,13 +36,11 @@ public class RootCommand extends Command {
 
     @Override
     public boolean execute(CommandSender sender, String alias, String[] args) {
-        MYOBJ data = parser.resolve(sender, args);
-
-
-//        List<Object> result = parser.resolve(sender, args);
-//         Reflect into method
-//        System.err.println("Result: " + result);
-
+        List<ParseResult> result = parser.resolve(sender, args);
+        System.err.println("Result: " + result.stream().map(r -> r.getResult()).collect(Collectors.toList()));
+        if (result.size() > 0 && result.get(result.size() - 1).getData().getMethod() != null) {
+            System.err.println(result.get(result.size() - 1).getData().getMethod());
+        }
         return false;
     }
 

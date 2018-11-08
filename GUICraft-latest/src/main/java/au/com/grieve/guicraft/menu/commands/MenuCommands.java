@@ -18,20 +18,23 @@
 
 package au.com.grieve.guicraft.menu.commands;
 
+import au.com.grieve.bcf.ParseResult;
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Description;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.List;
+
 
 @Arg("menu|m")
 public class MenuCommands extends GUICraftCommand {
 
-    @Arg("open|o @menu.config @player(switch=player|p, required=false, default=self, filter=online) @menu.type.proxy")
+    @Arg("open|o @menu.config @player(switch=player|p, required=false, default=self, filter=online) @menu.type.proxy(required=false)")
     @Description("Open Menu")
-    public void onOpen(CommandSender sender, String path, Player player) {
-        System.err.println("onOpen: " + sender + ", " + path + ", " + player);
+    public void onOpen(CommandSender sender, String path, Player player, List<ParseResult> data) {
+        System.err.println("onOpen: " + sender + ", " + path + ", " + player + "," + data);
         return;
 //        // Resolve Menu
 //        try {
@@ -60,7 +63,7 @@ public class MenuCommands extends GUICraftCommand {
 //        }
     }
 
-    @Arg("close|c @players.online(switch=player|p, required=false, default=self)")
+    @Arg("close|c @players(switch=player|p, required=false, default=self, filter=any)")
     @Description("Close Menu")
     public void onClose(CommandSender sender, Player player) {
         System.err.println("onOpen: " + sender + ", " + player);

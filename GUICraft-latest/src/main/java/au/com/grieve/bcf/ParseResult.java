@@ -22,13 +22,17 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ParseResult {
 
     @Getter
     private ArgData data;
+
+    @Getter
+    private Map<String, String> parameters = new HashMap<>();
 
     @Getter
     private List<String> args = new ArrayList<>();
@@ -40,13 +44,22 @@ public class ParseResult {
     @Setter
     private Object result;
 
-    public ParseResult(ArgData data, String arg) {
-        this(data, Collections.singletonList(arg));
+    public ParseResult(ArgData data) {
+        this(data, new HashMap<>());
+
     }
 
-    public ParseResult(ArgData data, List<String> args) {
+    public ParseResult(ArgData data, Map<String, String> defaultParameters) {
         this.data = data;
-        this.args = args;
+        this.parameters.putAll(defaultParameters);
+        this.parameters.putAll(data.parameters);
+    }
+
+    // Set a parameter if its not already defined
+    public void setParameter(String key, String value) {
+        if (!this.parameters.containsKey(key)) {
+            this.parameters.put(key, value);
+        }
     }
 
 }

@@ -21,15 +21,17 @@ package au.com.grieve.bcf;
 import au.com.grieve.bcf.exceptions.ParserException;
 import org.bukkit.command.CommandSender;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class Parser {
+
+    protected Map<String, String> defaultParameters = new HashMap<>();
 
     /**
      * Return a list of resolved objects and their text names based upon the arguments provided.
      */
     public abstract ParseResult resolve(CommandSender sender, List<String> args, ArgData data) throws ParserException;
-
-//    public abstract List<String> complete(CommandSender sender, List<String> args, ArgData data)  throws ParserException;
 
 }

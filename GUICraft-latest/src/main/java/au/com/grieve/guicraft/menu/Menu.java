@@ -19,8 +19,8 @@
 package au.com.grieve.guicraft.menu;
 
 import au.com.grieve.bcf.ArgData;
+import au.com.grieve.bcf.ParseResult;
 import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.TreeNode;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageSection;
@@ -54,46 +54,57 @@ public class Menu {
         // Tab Completions
         gui.getCommandManager().registerParser("menu.config", new Parser() {
             @Override
-            public void resolve(CommandSender sender, List<String> args, TreeNode<ArgData> node, List<String> alternatives, List<Object> result) {
+            public ParseResult resolve(CommandSender sender, List<String> args, ArgData data) {
+                ParseResult result = new ParseResult(data);
+
                 if (args.size() == 0) {
-                    return;
+                    return result;
                 }
 
                 String arg = args.remove(0);
+                result.getArgs().add(arg);
 
-                alternatives.addAll(gui.getLocalConfig().getResolver("menu").getKeys().stream()
+                result.getCompletions().addAll(gui.getLocalConfig().getResolver("menu").getKeys().stream()
                         .filter(s -> s.startsWith(arg))
                         .limit(20)
                         .collect(Collectors.toList()));
 
-                result.addAll(gui.getLocalConfig().getResolver("menu").getKeys().stream()
+                result.setResult(gui.getLocalConfig().getResolver("menu").getKeys().stream()
                         .filter(s -> s.equals(arg))
-                        .limit(1)
-                        .collect(Collectors.toList()));
+                        .findFirst()
+                        .orElse(null));
+
+                return result;
             }
         });
 
         gui.getCommandManager().registerParser("menu.package", new Parser() {
             @Override
-            public void resolve(CommandSender sender, List<String> args, TreeNode<ArgData> node, List<String> alternatives, List<Object> result) {
+            public ParseResult resolve(CommandSender sender, List<String> args, ArgData data) {
+                ParseResult result = new ParseResult(data);
+
                 if (args.size() == 0) {
-                    return;
+                    return result;
                 }
 
                 String arg = args.remove(0);
-                int index = arg.lastIndexOf('.');
-                String pkg = index == -1 ? arg : arg.substring(0, index);
+                result.getArgs().add(arg);
 
-                alternatives.addAll(gui.getLocalConfig().getResolver("menu").getPackages().stream()
-                        .filter(s -> s.startsWith(pkg))
+                result.getCompletions().addAll(gui.getLocalConfig().getResolver("menu").getPackages().stream()
+                        .filter(s -> s.startsWith(arg))
                         .limit(20)
                         .collect(Collectors.toList()));
 
-                result.addAll(gui.getLocalConfig().getResolver("menu").getPackages().stream()
+                int index = arg.lastIndexOf('.');
+                String pkg = index == -1 ? arg : arg.substring(0, index);
+
+                result.setResult(gui.getLocalConfig().getResolver("menu").getPackages().stream()
                         .filter(s -> s.equals(pkg) && index > arg.length())
-                        .limit(1)
+                        .findFirst()
                         .map(s -> arg)
-                        .collect(Collectors.toList()));
+                        .orElse(null));
+
+                return result;
             }
         });
 

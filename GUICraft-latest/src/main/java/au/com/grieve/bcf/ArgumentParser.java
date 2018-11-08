@@ -18,8 +18,7 @@
 
 package au.com.grieve.bcf;
 
-import au.com.grieve.bcf.exceptions.ParserArgumentException;
-import au.com.grieve.bcf.exceptions.ParserEndException;
+import au.com.grieve.bcf.exceptions.ParserException;
 import lombok.Getter;
 import org.bukkit.command.CommandSender;
 
@@ -106,15 +105,19 @@ public class ArgumentParser {
 //
 //    }
 
-    public List<Object> resolve(CommandSender sender, String[] args) {
+    public List<ParseResult> resolve(CommandSender sender, String[] args) {
         return resolve(sender, Arrays.asList(args), data);
     }
 
-    List<Object> resolve(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
-        List<Object> result = new ArrayList<>();
+    /**
+     * Return the longest chain of arguments
+     */
+    List<ParseResult> resolve(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
+        List<ParseResult> result = new ArrayList<>();
 
+        // If we have a default argument then add it now if needed
         if (args.size() == 0) {
-            return result;
+            args.addAll(Arrays.asList(node.data.getParameters().getOrDefault("default", "").split(" ")));
         }
 
         if (!node.isRoot() && node.data != null && node.data.arg != null) {
@@ -124,26 +127,35 @@ public class ArgumentParser {
                 return result;
             }
 
-            Object data = null;
             try {
-                data = parser.resolve(sender, args, node.data);
-            } catch (ParserEndException e) {
-                return result;
-            } catch (ParserArgumentException e) {
+                ParseResult parseResult = parser.resolve(sender, args, node.data);
+                if (parseResult == null) {
+                    return result;
+                }
+
+                // If its not optional then end of the line
+                System.err.println(node.data.arg + ": " + parseResult.getParameters());
+                if (parseResult.getResult() == null && !parseResult.getParameters().getOrDefault("required", "true").equals("false")) {
+                    System.err.println("req");
+                    return result;
+                }
+
+                result.add(parseResult);
+            } catch (ParserException e) {
                 e.printStackTrace();
             }
-
-            if (data == null) {
-                return result;
-            }
-
-            result.add(data.entrySet().iterator().next());
         }
 
-        // Recurse
+        // Recurse and keep first best
+        List<ParseResult> bestResult = new ArrayList<>();
         for (TreeNode<ArgData> n : node.children) {
-            result.addAll(resolve(sender, new ArrayList<>(args), n));
+            List<ParseResult> checkResult = resolve(sender, new ArrayList<>(args), n);
+            if (checkResult.size() > bestResult.size()) {
+                bestResult = checkResult;
+            }
         }
+
+        result.addAll(bestResult);
 
         return result;
     }
@@ -153,12 +165,11 @@ public class ArgumentParser {
         return complete(sender, Arrays.asList(args), data);
     }
 
+    /**
+     * Return the list of completions for the last argument of the deepest chain
+     */
     List<String> complete(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
         List<String> result = new ArrayList<>();
-
-        if (args.size() == 0) {
-            return result;
-        }
 
         if (!node.isRoot() && node.data != null && node.data.arg != null) {
             Parser parser = manager.getParser(node.data.arg);
@@ -167,19 +178,30 @@ public class ArgumentParser {
                 return result;
             }
 
-            List<String> data = parser.complete(sender, args, node);
+            try {
+                ParseResult parseResult = parser.resolve(sender, args, node.data);
 
-            if (data == null) {
-                return result;
-            }
+                if (parseResult == null) {
+                    return result;
+                }
 
-            if (args.size() == 0) {
-                result.addAll(data);
-                return result;
+                // If no arguments left, store the completions
+                if (args.size() == 0) {
+                    result.addAll(parseResult.getCompletions());
+                    return result;
+                }
+
+                // If its not optional and failed to resolve then end of the line
+                if (parseResult.getResult() == null && !parseResult.getParameters().getOrDefault("required", "true").equals("false")) {
+                    return result;
+                }
+
+            } catch (ParserException e) {
+                e.printStackTrace();
             }
         }
 
-        // Recurse
+        // Recurse and merge
         for (TreeNode<ArgData> n : node.children) {
             result.addAll(complete(sender, new ArrayList<>(args), n));
         }

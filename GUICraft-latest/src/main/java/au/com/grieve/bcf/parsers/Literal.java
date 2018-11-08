@@ -37,13 +37,16 @@ import java.util.List;
 public class Literal extends Parser {
     @Override
     public ParseResult resolve(CommandSender sender, List<String> args, ArgData data) {
-        String arg = args.size() > 0 ? args.remove(0) : data.getParameters().get("default");
+        ParseResult result = new ParseResult(data);
+        result.setParameter("suppress", "true");
 
-        if (arg == null) {
-            return null;
+        if (args.size() == 0) {
+            return result;
         }
 
-        ParseResult result = new ParseResult(data, arg);
+        String arg = args.remove(0);
+
+        result.getArgs().add(arg);
 
         for (String alias : data.getArg().split("\\|")) {
             if (alias.equals("*")) {

@@ -19,8 +19,8 @@
 package au.com.grieve.guicraft.economy;
 
 import au.com.grieve.bcf.ArgData;
+import au.com.grieve.bcf.ParseResult;
 import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.TreeNode;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.economy.commands.EconomyCommands;
 import au.com.grieve.guicraft.economy.types.VaultEconomy;
@@ -49,12 +49,24 @@ public class Economy {
         // Tab Completions
         gui.getCommandManager().registerParser("economy.type", new Parser() {
             @Override
-            public void resolve(CommandSender sender, List<String> args, TreeNode<ArgData> node, List<String> alternatives, List<Object> result) {
+            public ParseResult resolve(CommandSender sender, List<String> args, ArgData data) {
+                ParseResult result = new ParseResult(data);
+
                 if (args.size() == 0) {
-                    return;
+                    return result;
                 }
 
                 String arg = args.remove(0);
+                result.getArgs().add(arg);
+
+//                result.getCompletions().addAll(gui.getLocalConfig().getResolver("menu").getKeys().stream()
+//                        .filter(s -> s.startsWith(arg))
+//                        .limit(20)
+//                        .collect(Collectors.toList()));
+
+//                q
+
+                return result;
             }
         });
 

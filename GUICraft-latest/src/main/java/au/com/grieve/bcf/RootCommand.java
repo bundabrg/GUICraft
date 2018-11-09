@@ -22,8 +22,12 @@ import lombok.Getter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RootCommand extends Command {
     @Getter
@@ -38,16 +42,31 @@ public class RootCommand extends Command {
     public boolean execute(CommandSender sender, String alias, String[] args) {
         List<ParseResult> result = parser.resolve(sender, args);
         System.err.println("Result: " + result.stream().map(r -> r.getResult()).collect(Collectors.toList()));
-        if (result.size() > 0 && result.get(result.size() - 1).getData().getMethod() != null) {
-            System.err.println(result.get(result.size() - 1).getData().getMethod());
+        if (result.size() > 0) {
+            Method method = result.get(result.size() - 1).getData().getMethod();
+            BaseCommand cmd = result.get(result.size() - 1).getData().getCommand();
+
+            if (method != null && cmd != null) {
+                List<Object> objs = Stream.concat(
+                        Stream.of(sender),
+                        result.stream()
+                                .filter(r -> !r.getParameters().getOrDefault("suppress", "false").equals("true"))
+                                .map(ParseResult::getResult)
+                )
+                        .collect(Collectors.toList());
+                System.err.println("Objs: " + objs);
+                try {
+                    method.invoke(cmd, objs);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        return false;
+        return true;
     }
 
     @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
-        List<String> result = parser.complete(sender, args);
-        System.err.println("Complete: " + result);
-        return result;
+        return parser.complete(sender, args);
     }
 }

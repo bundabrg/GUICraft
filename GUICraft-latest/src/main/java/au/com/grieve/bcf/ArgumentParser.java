@@ -62,7 +62,7 @@ public class ArgumentParser {
         String pad = new String(repeat);
 
         // Our name
-        result.append(pad).append(node.data.arg).append("\n");
+        result.append(pad).append(node.data.arg).append(" - ").append(node.data.parameters).append("\n");
 
         for (TreeNode<ArgData> n : node.children) {
             result.append(walkTree(n, depth + 1));
@@ -134,7 +134,7 @@ public class ArgumentParser {
                 }
 
                 // If its not optional then end of the line
-                System.err.println(node.data.arg + ": " + parseResult.getParameters());
+
                 if (parseResult.getResult() == null && !parseResult.getParameters().getOrDefault("required", "true").equals("false")) {
                     System.err.println("req");
                     return result;

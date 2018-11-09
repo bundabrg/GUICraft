@@ -22,6 +22,7 @@ import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Command;
 import au.com.grieve.bcf.parsers.Literal;
 import au.com.grieve.bcf.parsers.Player;
+import au.com.grieve.bcf.parsers.StringParser;
 import au.com.grieve.bcf.utils.ReflectUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -47,7 +48,8 @@ public class CommandManager {
     private final CommandMap commandMap;
     private Map<String, RootCommand> commands = new HashMap<>();
     private Map<String, Parser> parsers = new HashMap<>();
-    private Parser defaultParser = new Literal();
+    private Parser literalParser = new Literal();
+    private Parser defaultParser = new StringParser();
 
     public CommandManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -55,6 +57,7 @@ public class CommandManager {
 
         // Register Default Parsers
         registerParser("player", new Player());
+        registerParser("string", new StringParser());
 
 
     }
@@ -135,6 +138,7 @@ public class CommandManager {
             if (argAnnotation != null && argAnnotation.value().trim().length() > 0) {
                 for (TreeNode<ArgData> t : parser.createNode(parentArg + " " + argAnnotation.value().trim())) {
                     t.data.method = m;
+                    t.data.command = cmd;
                 }
             }
         }
@@ -160,7 +164,11 @@ public class CommandManager {
     }
 
     public Parser getParser(String name) {
-        return parsers.getOrDefault(name, defaultParser);
+        if (name.startsWith("@")) {
+            return parsers.getOrDefault(name, defaultParser);
+        } else {
+            return literalParser;
+        }
     }
 
 }

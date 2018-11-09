@@ -59,10 +59,14 @@ public class Player extends Parser {
                         .limit(20)
                         .collect(Collectors.toList()));
 
-                result.setResult(Bukkit.getOnlinePlayers().stream()
-                        .filter(p -> p.getName().equals(arg))
-                        .findFirst()
-                        .orElse(null));
+                if (arg.equals("@self")) {
+                    result.setResult(sender);
+                } else {
+                    result.setResult(Bukkit.getOnlinePlayers().stream()
+                            .filter(p -> p.getName().equals(arg))
+                            .findFirst()
+                            .orElse(null));
+                }
                 break;
             default:
                 result.getCompletions().addAll(Arrays.stream(Bukkit.getOfflinePlayers())
@@ -71,10 +75,14 @@ public class Player extends Parser {
                         .limit(20)
                         .collect(Collectors.toList()));
 
-                result.setResult(Arrays.stream(Bukkit.getOfflinePlayers())
-                        .filter(p -> p.getName().equals(arg))
-                        .findFirst()
-                        .orElse(null));
+                if (arg.equals("@self")) {
+                    result.setResult(sender);
+                } else {
+                    result.setResult(Arrays.stream(Bukkit.getOfflinePlayers())
+                            .filter(p -> p.getName().equals(arg))
+                            .findFirst()
+                            .orElse(null));
+                }
         }
 
         return result;

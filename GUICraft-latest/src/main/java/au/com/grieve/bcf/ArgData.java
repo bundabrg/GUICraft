@@ -34,6 +34,7 @@ public class ArgData {
     Map<String, String> parameters = new HashMap<>();
 
     // Method to Call
+    BaseCommand command;
     Method method;
 
     ArgData(String arg) {
@@ -153,6 +154,9 @@ public class ArgData {
                                 break;
                             case 1:
                                 parameters.put(key.toString().trim(), value.toString().trim());
+                                for (ArgData a : result) {
+                                    a.parameters = parameters;
+                                }
                                 state = State.PARAM_END;
                                 break;
                             case 2:
@@ -208,9 +212,6 @@ public class ArgData {
                     case PARAM_END:
                         switch (" ".indexOf(c)) {
                             case 0:
-                                for (ArgData a : result) {
-                                    a.parameters = parameters;
-                                }
                                 return result;
                         }
                         break;

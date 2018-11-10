@@ -116,8 +116,8 @@ public class ArgumentParser {
         List<ParseResult> result = new ArrayList<>();
 
         // If we have a default argument then add it now if needed
-        if (args.size() == 0) {
-            args.addAll(Arrays.asList(node.data.getParameters().getOrDefault("default", "").split(" ")));
+        if (args.size() == 0 && node.data.getParameters().containsKey("default")) {
+            args.addAll(Arrays.asList(node.data.getParameters().get("default").split(" ")));
         }
 
         if (!node.isRoot() && node.data != null && node.data.arg != null) {

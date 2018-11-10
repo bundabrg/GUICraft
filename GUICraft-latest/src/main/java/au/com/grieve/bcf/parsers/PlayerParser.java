@@ -25,6 +25,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
  *     any - (default) Any player
  *     online - Only online players
  */
-public class Player extends Parser {
+public class PlayerParser extends Parser {
     @Override
     public ParseResult resolve(CommandSender sender, List<String> args, ArgData data) {
         ParseResult result = new ParseResult(data);
@@ -76,7 +77,7 @@ public class Player extends Parser {
                         .collect(Collectors.toList()));
 
                 if (arg.equals("@self")) {
-                    result.setResult(sender);
+                    result.setResult(Bukkit.getOfflinePlayer(((Player) sender).getUniqueId()));
                 } else {
                     result.setResult(Arrays.stream(Bukkit.getOfflinePlayers())
                             .filter(p -> p.getName().equals(arg))

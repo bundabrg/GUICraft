@@ -21,7 +21,7 @@ package au.com.grieve.bcf;
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Command;
 import au.com.grieve.bcf.parsers.Literal;
-import au.com.grieve.bcf.parsers.Player;
+import au.com.grieve.bcf.parsers.PlayerParser;
 import au.com.grieve.bcf.parsers.StringParser;
 import au.com.grieve.bcf.utils.ReflectUtils;
 import org.bukkit.Bukkit;
@@ -56,7 +56,7 @@ public class CommandManager {
         this.commandMap = hookCommandMap();
 
         // Register Default Parsers
-        registerParser("player", new Player());
+        registerParser("player", new PlayerParser());
         registerParser("string", new StringParser());
 
 

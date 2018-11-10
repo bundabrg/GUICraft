@@ -24,7 +24,7 @@ import org.bukkit.command.CommandSender;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,16 +47,33 @@ public class RootCommand extends Command {
             BaseCommand cmd = result.get(result.size() - 1).getData().getCommand();
 
             if (method != null && cmd != null) {
+                // Generate list of parameters
                 List<Object> objs = Stream.concat(
                         Stream.of(sender),
                         result.stream()
                                 .filter(r -> !r.getParameters().getOrDefault("suppress", "false").equals("true"))
                                 .map(ParseResult::getResult)
                 )
-                        .collect(Collectors.toList());
-                System.err.println("Objs: " + objs);
+                        .limit(method.getParameterCount()).collect(Collectors.toList());
+
+                // Fill out extra parameters with null
+                while (objs.size() < method.getParameterCount()) {
+                    System.err.println("Adding null" + null);
+                    objs.add(null);
+                }
+                System.err.println("OO: " + objs);
+
+                System.err.println("O: " + Stream.of(objs.toArray())
+                        .map(p -> {
+                            if (p == null) {
+                                return "null ";
+                            } else {
+                                return p.getClass().getName() + " ";
+                            }
+                        }).collect(Collectors.joining()));
                 try {
-                    method.invoke(cmd, objs);
+                    System.err.println(method + " - " + String.join(",", Arrays.stream(method.getParameterTypes()).map(p -> p.getName()).collect(Collectors.toList())));
+                    method.invoke(cmd, objs.toArray());
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
                 }

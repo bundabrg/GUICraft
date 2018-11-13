@@ -24,8 +24,10 @@ import au.com.grieve.bcf.ParserContext;
 import au.com.grieve.bcf.ParserResult;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public class StringParser extends Parser {
+public class IntegerParser extends Parser {
     @Override
     public boolean resolve(List<String> args, ParserContext context, ArgData data) {
         ParserResult result = new ParserResult(data);
@@ -35,10 +37,39 @@ public class StringParser extends Parser {
         }
 
         String arg = args.remove(0);
+        Integer argInt;
+        try {
+            argInt = Integer.valueOf(arg);
+        } catch (NumberFormatException e) {
+            if (arg.length() != 0) {
+                return false;
+            }
+            argInt = null;
+        }
 
         result.getArgs().add(arg);
-        result.setResult(arg);
+
+        // Completions use range parameters
+        if (result.getParameters().containsKey("max")) {
+            int max = Integer.valueOf(result.getParameters().get("max"));
+            int min = Integer.valueOf(result.getParameters().getOrDefault("min", "0"));
+            result.getCompletions().addAll(IntStream.rangeClosed(min, max)
+                    .mapToObj(String::valueOf)
+                    .filter(s -> s.startsWith(arg))
+                    .limit(20)
+                    .collect(Collectors.toList()));
+
+            if (argInt != null && (argInt >= min && argInt <= max)) {
+                result.setResult(argInt);
+            }
+        } else {
+            if (argInt != null) {
+                result.setResult(argInt);
+            }
+        }
+
         context.getResults().add(result);
+
         return true;
     }
 }

@@ -40,7 +40,7 @@ public class RootCommand extends Command {
 
     @Override
     public boolean execute(CommandSender sender, String alias, String[] args) {
-        List<ParseResult> result = parser.resolve(sender, args);
+        List<ParserResult> result = parser.resolve(sender, args);
         System.err.println("Result: " + result.stream().map(r -> r.getResult()).collect(Collectors.toList()));
         if (result.size() > 0) {
             Method method = result.get(result.size() - 1).getData().getMethod();
@@ -52,7 +52,7 @@ public class RootCommand extends Command {
                         Stream.of(sender),
                         result.stream()
                                 .filter(r -> !r.getParameters().getOrDefault("suppress", "false").equals("true"))
-                                .map(ParseResult::getResult)
+                                .map(ParserResult::getResult)
                 )
                         .limit(method.getParameterCount()).collect(Collectors.toList());
 

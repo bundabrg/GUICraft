@@ -21,7 +21,14 @@ package au.com.grieve.guicraft.item.commands;
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Description;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
+import au.com.grieve.guicraft.item.ItemException;
+import au.com.grieve.guicraft.item.types.BukkitItemType;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 
 @Arg("item|i")
@@ -30,20 +37,19 @@ public class BukkitCommands extends GUICraftCommand {
     @Arg("save|s @item.package bukkit")
     @Description("Save item in hand as a bukkit item")
     public void onSave(CommandSender sender, String path, String type) {
-        System.err.println(sender + ", " + path + ", " + type);
-//        ItemStack item = ((Player) sender).getInventory().getItemInMainHand();
-//        if (item.getType() == Material.AIR) {
-//            sender.spigot().sendMessage(new ComponentBuilder("Must hold item to save").color(ChatColor.RED).create());
-//            return;
-//        }
-//
-//        try {
-//            BukkitItemType.saveItem(path, item);
-//        } catch (ItemException e) {
-//            sender.spigot().sendMessage(new ComponentBuilder("Failed to save item: ").append(e.getMessage()).create());
-//            return;
-//        }
-//
-//        sender.spigot().sendMessage(new ComponentBuilder("Item saved").create());
+        ItemStack item = ((Player) sender).getInventory().getItemInMainHand();
+        if (item.getType() == Material.AIR) {
+            sender.spigot().sendMessage(new ComponentBuilder("Must hold item to save").color(ChatColor.RED).create());
+            return;
+        }
+
+        try {
+            BukkitItemType.saveItem(path, item);
+        } catch (ItemException e) {
+            sender.spigot().sendMessage(new ComponentBuilder("Failed to save item: ").append(e.getMessage()).create());
+            return;
+        }
+
+        sender.spigot().sendMessage(new ComponentBuilder("Item saved").create());
     }
 }

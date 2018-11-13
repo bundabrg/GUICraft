@@ -20,7 +20,9 @@ package au.com.grieve.bcf;
 
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Command;
-import au.com.grieve.bcf.parsers.Literal;
+import au.com.grieve.bcf.parsers.DoubleParser;
+import au.com.grieve.bcf.parsers.IntegerParser;
+import au.com.grieve.bcf.parsers.LiteralParser;
 import au.com.grieve.bcf.parsers.PlayerParser;
 import au.com.grieve.bcf.parsers.StringParser;
 import au.com.grieve.bcf.utils.ReflectUtils;
@@ -48,7 +50,7 @@ public class CommandManager {
     private final CommandMap commandMap;
     private Map<String, RootCommand> commands = new HashMap<>();
     private Map<String, Parser> parsers = new HashMap<>();
-    private Parser literalParser = new Literal();
+    private Parser literalParser = new LiteralParser();
     private Parser defaultParser = new StringParser();
 
     public CommandManager(JavaPlugin plugin) {
@@ -58,6 +60,8 @@ public class CommandManager {
         // Register Default Parsers
         registerParser("player", new PlayerParser());
         registerParser("string", new StringParser());
+        registerParser("int", new IntegerParser());
+        registerParser("double", new DoubleParser());
 
 
     }

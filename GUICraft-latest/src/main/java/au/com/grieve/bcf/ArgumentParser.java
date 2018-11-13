@@ -105,16 +105,14 @@ public class ArgumentParser {
 //
 //    }
 
-    public List<ParseResult> resolve(CommandSender sender, String[] args) {
-        return resolve(sender, Arrays.asList(args), data);
+    public boolean resolve(String[] args, ParserContext context) {
+        return resolve(data, Arrays.asList(args), context);
     }
 
     /**
      * Return the longest chain of arguments
      */
-    List<ParseResult> resolve(CommandSender sender, List<String> args, TreeNode<ArgData> node) {
-        List<ParseResult> result = new ArrayList<>();
-
+    boolean resolve(TreeNode<ArgData> node, List<String> args, ParserContext context) {
         // If we have a default argument then add it now if needed
         if (args.size() == 0 && node.data.getParameters().containsKey("default")) {
             args.addAll(Arrays.asList(node.data.getParameters().get("default").split(" ")));
@@ -124,19 +122,20 @@ public class ArgumentParser {
             Parser parser = manager.getParser(node.data.arg);
 
             if (parser == null) {
-                return result;
+                return false;
             }
 
             try {
-                ParseResult parseResult = parser.resolve(sender, args, node.data);
-                if (parseResult == null) {
-                    return result;
+                boolean result = parser.resolve(args, context, node.data);
+                if (!result) {
+                    if
+                    return false;
                 }
 
                 // If its not optional then end of the line
-
-                if (parseResult.getResult() == null && !parseResult.getParameters().getOrDefault("required", "true").equals("false")) {
-                    System.err.println("req");
+                if (context.getResults()
+                parseResult.getResult() == null && !parseResult.getParameters().getOrDefault("required", "true").equals("false"))
+                {
                     return result;
                 }
 
@@ -147,11 +146,18 @@ public class ArgumentParser {
         }
 
         // Recurse and keep first best
-        List<ParseResult> bestResult = new ArrayList<>();
         for (TreeNode<ArgData> n : node.children) {
-            List<ParseResult> checkResult = resolve(sender, new ArrayList<>(args), n);
-            if (checkResult.size() > bestResult.size()) {
-                bestResult = checkResult;
+            ParserContext currentContext;
+            try {
+                currentContext = (ParserContext) context.clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+                break;
+            }
+
+            List<ParserResult> checkResult = resolve(new ArrayList<>(args), currentContext, n);
+            if (currentContext.getResults().size() > context.getResults().size()) {
+                context = currentContext;
             }
         }
 
@@ -179,7 +185,7 @@ public class ArgumentParser {
             }
 
             try {
-                ParseResult parseResult = parser.resolve(sender, args, node.data);
+                ParserResult parseResult = parser.resolve(sender, args, node.data);
 
                 if (parseResult == null) {
                     return result;

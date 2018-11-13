@@ -19,8 +19,8 @@
 package au.com.grieve.guicraft.menu;
 
 import au.com.grieve.bcf.ArgData;
-import au.com.grieve.bcf.ParseResult;
 import au.com.grieve.bcf.Parser;
+import au.com.grieve.bcf.ParserResult;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageSection;
@@ -54,8 +54,8 @@ public class Menu {
         // Tab Completions
         gui.getCommandManager().registerParser("menu.config", new Parser() {
             @Override
-            public ParseResult resolve(CommandSender sender, List<String> args, ArgData data) {
-                ParseResult result = new ParseResult(data);
+            public ParserResult resolve(CommandSender sender, List<String> args, ArgData data) {
+                ParserResult result = new ParserResult(data);
 
                 if (args.size() == 0) {
                     return result;
@@ -80,8 +80,8 @@ public class Menu {
 
         gui.getCommandManager().registerParser("menu.package", new Parser() {
             @Override
-            public ParseResult resolve(CommandSender sender, List<String> args, ArgData data) {
-                ParseResult result = new ParseResult(data);
+            public ParserResult resolve(CommandSender sender, List<String> args, ArgData data) {
+                ParserResult result = new ParserResult(data);
 
                 if (args.size() == 0) {
                     return result;

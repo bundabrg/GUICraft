@@ -19,11 +19,11 @@
 package au.com.grieve.bcf.parsers;
 
 import au.com.grieve.bcf.ArgData;
-import au.com.grieve.bcf.ParseResult;
 import au.com.grieve.bcf.Parser;
+import au.com.grieve.bcf.ParserContext;
+import au.com.grieve.bcf.ParserResult;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 
@@ -41,15 +41,14 @@ import java.util.stream.Collectors;
  */
 public class PlayerParser extends Parser {
     @Override
-    public ParseResult resolve(CommandSender sender, List<String> args, ArgData data) {
-        ParseResult result = new ParseResult(data);
+    public boolean resolve(List<String> args, ParserContext context, ArgData data) {
+        ParserResult result = new ParserResult(data);
 
         if (args.size() == 0) {
-            return result;
+            return false;
         }
 
         String arg = args.remove(0);
-
         result.getArgs().add(arg);
 
         switch (data.getParameters().getOrDefault("mode", "any")) {
@@ -61,7 +60,7 @@ public class PlayerParser extends Parser {
                         .collect(Collectors.toList()));
 
                 if (arg.equals("@self")) {
-                    result.setResult(sender);
+                    result.setResult(context.getSender());
                 } else {
                     result.setResult(Bukkit.getOnlinePlayers().stream()
                             .filter(p -> p.getName().equals(arg))
@@ -77,7 +76,7 @@ public class PlayerParser extends Parser {
                         .collect(Collectors.toList()));
 
                 if (arg.equals("@self")) {
-                    result.setResult(Bukkit.getOfflinePlayer(((Player) sender).getUniqueId()));
+                    result.setResult(Bukkit.getOfflinePlayer(((Player) context.getSender()).getUniqueId()));
                 } else {
                     result.setResult(Arrays.stream(Bukkit.getOfflinePlayers())
                             .filter(p -> p.getName().equals(arg))
@@ -86,6 +85,8 @@ public class PlayerParser extends Parser {
                 }
         }
 
-        return result;
+        context.getResults().add(result);
+
+        return true;
     }
 }

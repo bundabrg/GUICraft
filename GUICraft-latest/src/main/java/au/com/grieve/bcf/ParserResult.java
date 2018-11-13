@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ParseResult {
+public class ParserResult {
 
     @Getter
     private ArgData data;
@@ -44,12 +44,12 @@ public class ParseResult {
     @Setter
     private Object result;
 
-    public ParseResult(ArgData data) {
+    public ParserResult(ArgData data) {
         this(data, new HashMap<>());
 
     }
 
-    public ParseResult(ArgData data, Map<String, String> defaultParameters) {
+    public ParserResult(ArgData data, Map<String, String> defaultParameters) {
         this.data = data;
         this.parameters.putAll(defaultParameters);
         this.parameters.putAll(data.parameters);

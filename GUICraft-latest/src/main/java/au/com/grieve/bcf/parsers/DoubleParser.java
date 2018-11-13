@@ -25,7 +25,7 @@ import au.com.grieve.bcf.ParserResult;
 
 import java.util.List;
 
-public class StringParser extends Parser {
+public class DoubleParser extends Parser {
     @Override
     public boolean resolve(List<String> args, ParserContext context, ArgData data) {
         ParserResult result = new ParserResult(data);
@@ -35,9 +35,23 @@ public class StringParser extends Parser {
         }
 
         String arg = args.remove(0);
+        Double argDouble;
+
+        try {
+            argDouble = Double.valueOf(arg);
+        } catch (NumberFormatException e) {
+            if (arg.length() > 0) {
+                return false;
+            }
+            argDouble = null;
+        }
+
 
         result.getArgs().add(arg);
-        result.setResult(arg);
+        if (argDouble != null) {
+            result.setResult(argDouble);
+        }
+
         context.getResults().add(result);
         return true;
     }

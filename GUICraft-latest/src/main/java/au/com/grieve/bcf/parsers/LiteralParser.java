@@ -19,9 +19,9 @@
 package au.com.grieve.bcf.parsers;
 
 import au.com.grieve.bcf.ArgData;
-import au.com.grieve.bcf.ParseResult;
 import au.com.grieve.bcf.Parser;
-import org.bukkit.command.CommandSender;
+import au.com.grieve.bcf.ParserContext;
+import au.com.grieve.bcf.ParserResult;
 
 import java.util.List;
 
@@ -34,14 +34,14 @@ import java.util.List;
  * If * is provided then it will accept any input
  * Will use the first matching alias as an alternative for partials
  */
-public class Literal extends Parser {
+public class LiteralParser extends Parser {
     @Override
-    public ParseResult resolve(CommandSender sender, List<String> args, ArgData data) {
-        ParseResult result = new ParseResult(data);
+    public boolean resolve(List<String> args, ParserContext context, ArgData data) {
+        ParserResult result = new ParserResult(data);
         result.setParameter("suppress", "true");
 
         if (args.size() == 0) {
-            return result;
+            return false;
         }
 
         String arg = args.remove(0);
@@ -50,19 +50,25 @@ public class Literal extends Parser {
 
         for (String alias : data.getArg().split("\\|")) {
             if (alias.equals("*")) {
-                result.getCompletions().add(arg);
+                if (result.getCompletions().size() == 0) {
+                    result.getCompletions().add(arg);
+                }
                 result.setResult(arg);
-                return result;
+                context.getResults().add(result);
+                return true;
             }
 
             if (alias.startsWith(arg)) {
-                result.getCompletions().add(alias);
+                if (result.getCompletions().size() == 0) {
+                    result.getCompletions().add(alias);
+                }
                 if (alias.equals(arg)) {
                     result.setResult(arg);
+                    context.getResults().add(result);
+                    return true;
                 }
-                return result;
             }
         }
-        return null;
+        return false;
     }
 }

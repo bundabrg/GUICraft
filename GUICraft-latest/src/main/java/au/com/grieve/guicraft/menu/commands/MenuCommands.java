@@ -18,10 +18,16 @@
 
 package au.com.grieve.guicraft.menu.commands;
 
-import au.com.grieve.bcf.ParseResult;
+import au.com.grieve.bcf.ParserResult;
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Description;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
+import au.com.grieve.guicraft.exceptions.GUICraftException;
+import au.com.grieve.guicraft.menu.Menu;
+import au.com.grieve.guicraft.menu.MenuException;
+import au.com.grieve.guicraft.menu.MenuType;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -31,60 +37,56 @@ import java.util.List;
 @Arg("menu|m")
 public class MenuCommands extends GUICraftCommand {
 
-    @Arg("open|o @menu.config @player(switch=player|p, required=false, default=@self, mode=online) @menu.type.proxy(required=false)")
+    @Arg("open|o @menu.config @player(switch=player|p, required=true, default=@self, mode=online) @menu.type.proxy(required=false)")
     @Description("Open Menu")
-    public void onOpen(CommandSender sender, String path, Player player, List<ParseResult> data) {
-        System.err.println("onOpen: " + sender + ", " + path + ", " + player + "," + data);
-        return;
-//        // Resolve Menu
-//        try {
-//            MenuType menuType = Menu.getInstance().resolveMenuType(path);
-//
-//            if (menuType == null) {
-//                throw new MenuException("Invalid menu: " + path);
-//            }
-//
-//            Player opener;
-//
-//            if (player == null) {
-//                if (!(sender instanceof Player)) {
-//                    throw new MenuException("Execute command as player or specify their name on the end");
-//                }
-//                opener = (Player) sender;
-//            } else {
-//                opener = player.player;
-//            }
-//
-//
-//            menuType.open(opener);
-//
-//        } catch (GUICraftException e) {
-//            sender.spigot().sendMessage(new ComponentBuilder("Error: ").append(e.getMessage()).color(ChatColor.RED).create());
-//        }
+    public void onOpen(CommandSender sender, String path, Player player, List<ParserResult> data) {
+        // Resolve Menu
+        try {
+            MenuType menuType = Menu.getInstance().resolveMenuType(path);
+
+            if (menuType == null) {
+                throw new MenuException("Invalid menu: " + path);
+            }
+
+            Player opener;
+
+            if (player == null) {
+                if (!(sender instanceof Player)) {
+                    throw new MenuException("Execute command as player or specify their name on the end");
+                }
+                opener = (Player) sender;
+            } else {
+                opener = player.getPlayer();
+            }
+
+
+            menuType.open(opener);
+
+        } catch (GUICraftException e) {
+            sender.spigot().sendMessage(new ComponentBuilder("Error: ").append(e.getMessage()).color(ChatColor.RED).create());
+        }
     }
 
-    @Arg("close|c @players(switch=player|p, required=false, default=self, filter=any)")
+    @Arg("close|c @player(switch=player|p, required=true, default=@self, mode=online)")
     @Description("Close Menu")
     public void onClose(CommandSender sender, Player player) {
-        System.err.println("onOpen: " + sender + ", " + player);
-        return;
-//        // Resolve Menu
-//        try {
-//            Player closer;
-//
-//            if (player == null) {
-//                if (!(sender instanceof Player)) {
-//                    throw new MenuException("Execute command as player or specify their name on the end");
-//                }
-//                closer = (Player) sender;
-//            } else {
-//                closer = player.player;
-//            }
-//
-//            closer.closeInventory();
-//
-//        } catch (GUICraftException e) {
-//            sender.spigot().sendMessage(new ComponentBuilder("Error: ").append(e.getMessage()).color(ChatColor.RED).create());
-//        }
+        // Resolve Menu
+        try {
+            Player closer;
+
+            if (player == null) {
+                if (!(sender instanceof Player)) {
+                    throw new MenuException("Execute command as player or specify their name on the end");
+                }
+                closer = (Player) sender;
+            } else {
+                closer = player.getPlayer();
+            }
+
+            closer.closeInventory();
+
+        } catch (GUICraftException e) {
+            sender.spigot().sendMessage(new ComponentBuilder("Error: ").append(e.getMessage()).color(ChatColor.RED).create());
+        }
     }
 }

@@ -18,9 +18,10 @@
 
 package au.com.grieve.guicraft.item;
 
-import au.com.grieve.bcf.ArgData;
-import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.ParserResult;
+import au.com.grieve.bcf.api.ArgData;
+import au.com.grieve.bcf.api.Parser;
+import au.com.grieve.bcf.api.ParserContext;
+import au.com.grieve.bcf.api.ParserResult;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageSection;
@@ -52,9 +53,9 @@ public class Item {
 //        gui.getCommandManager().getCommandReplacements().addReplacement("itemsave", "save|s");
 
         // Tab Completions
-        gui.getCommandManager().registerParser("item.config", new Parser() {
+        gui.getBukkitCommandManager().registerParser("item.config", new Parser() {
             @Override
-            public ParserResult resolve(CommandSender sender, List<String> args, ArgData data) {
+            public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
                 ParserResult result = new ParserResult(data);
 
                 if (args.size() == 0) {
@@ -69,18 +70,18 @@ public class Item {
                         .limit(20)
                         .collect(Collectors.toList()));
 
-                result.setResult(gui.getLocalConfig().getResolver("item").getKeys().stream()
+                result.getResults().addAll(gui.getLocalConfig().getResolver("item").getKeys().stream()
                         .filter(s -> s.equals(arg))
-                        .findFirst()
-                        .orElse(null));
+                        .limit(1)
+                        .collect(Collectors.toList()));
 
                 return result;
             }
         });
 
-        gui.getCommandManager().registerParser("item.package", new Parser() {
+        gui.getBukkitCommandManager().registerParser("item.package", new Parser() {
             @Override
-            public ParserResult resolve(CommandSender sender, List<String> args, ArgData data) {
+            public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
                 ParserResult result = new ParserResult(data);
 
                 if (args.size() == 0) {
@@ -98,11 +99,11 @@ public class Item {
                 int index = arg.lastIndexOf('.');
                 String pkg = index == -1 ? arg : arg.substring(0, index);
 
-                result.setResult(gui.getLocalConfig().getResolver("item").getPackages().stream()
+                result.getResults().addAll(gui.getLocalConfig().getResolver("item").getPackages().stream()
                         .filter(s -> s.equals(pkg) && index > arg.length())
-                        .findFirst()
+                        .limit(1)
                         .map(s -> arg)
-                        .orElse(null));
+                        .collect(Collectors.toList()));
 
                 return result;
             }
@@ -117,7 +118,7 @@ public class Item {
 
         // Commands
         // Register a Command to manually execute this type
-        GUICraft.getInstance().getCommandManager().registerCommand(new BukkitCommands());
+        GUICraft.getInstance().getBukkitCommandManager().registerCommand(new BukkitCommands());
     }
 
     /**

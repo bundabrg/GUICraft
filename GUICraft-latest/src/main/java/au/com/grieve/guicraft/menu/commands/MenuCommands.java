@@ -18,7 +18,7 @@
 
 package au.com.grieve.guicraft.menu.commands;
 
-import au.com.grieve.bcf.ParserResult;
+import au.com.grieve.bcf.api.ParserResult;
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Description;
 import au.com.grieve.guicraft.commands.GUICraftCommand;

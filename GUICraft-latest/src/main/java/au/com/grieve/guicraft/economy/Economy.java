@@ -18,9 +18,10 @@
 
 package au.com.grieve.guicraft.economy;
 
-import au.com.grieve.bcf.ArgData;
-import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.ParserResult;
+import au.com.grieve.bcf.api.ArgData;
+import au.com.grieve.bcf.api.Parser;
+import au.com.grieve.bcf.api.ParserContext;
+import au.com.grieve.bcf.api.ParserResult;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.economy.commands.EconomyCommands;
 import au.com.grieve.guicraft.economy.types.VaultEconomy;
@@ -47,9 +48,9 @@ public class Economy {
 //        gui.getCommandManager().getCommandReplacements().addReplacement("economy", "economy|e");
 
         // Tab Completions
-        gui.getCommandManager().registerParser("economy.type", new Parser() {
+        gui.getBukkitCommandManager().registerParser("economy.type", new Parser() {
             @Override
-            public ParserResult resolve(CommandSender sender, List<String> args, ArgData data) {
+            public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
                 ParserResult result = new ParserResult(data);
 
                 if (args.size() == 0) {
@@ -74,7 +75,7 @@ public class Economy {
         VaultEconomy.register();
 
         // Commands
-        gui.getCommandManager().registerCommand(new EconomyCommands());
+        gui.getBukkitCommandManager().registerCommand(new EconomyCommands());
 
     }
 

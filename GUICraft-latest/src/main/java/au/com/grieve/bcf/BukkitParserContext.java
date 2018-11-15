@@ -18,19 +18,15 @@
 
 package au.com.grieve.bcf;
 
-import au.com.grieve.bcf.exceptions.ParserException;
+import au.com.grieve.bcf.api.ParserContext;
+import lombok.Data;
+import lombok.Getter;
+import org.bukkit.command.CommandSender;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+@Data
+public class BukkitParserContext extends ParserContext {
 
-public abstract class Parser {
-
-    protected Map<String, String> defaultParameters = new HashMap<>();
-
-    /**
-     * Return a list of resolved objects and their text names based upon the arguments provided.
-     */
-    public abstract boolean resolve(List<String> args, ParserContext context, ArgData data) throws ParserException;
-
+    // Bukkit Command Sender
+    @Getter
+    private CommandSender sender;
 }

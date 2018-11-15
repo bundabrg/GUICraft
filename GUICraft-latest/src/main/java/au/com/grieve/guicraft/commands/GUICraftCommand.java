@@ -18,7 +18,7 @@
 
 package au.com.grieve.guicraft.commands;
 
-import au.com.grieve.bcf.BaseCommand;
+import au.com.grieve.bcf.api.BaseCommand;
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Command;
 import net.md_5.bungee.api.ChatColor;

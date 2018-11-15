@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf.parsers;
+package au.com.grieve.bcf.api.parsers;
 
-import au.com.grieve.bcf.ArgData;
-import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.ParserContext;
-import au.com.grieve.bcf.ParserResult;
+import au.com.grieve.bcf.api.ArgData;
+import au.com.grieve.bcf.api.Parser;
+import au.com.grieve.bcf.api.ParserContext;
+import au.com.grieve.bcf.api.ParserResult;
 
 import java.util.List;
 
@@ -36,12 +36,12 @@ import java.util.List;
  */
 public class LiteralParser extends Parser {
     @Override
-    public boolean resolve(List<String> args, ParserContext context, ArgData data) {
+    public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
         ParserResult result = new ParserResult(data);
         result.setParameter("suppress", "true");
 
         if (args.size() == 0) {
-            return false;
+            return result;
         }
 
         String arg = args.remove(0);
@@ -53,9 +53,8 @@ public class LiteralParser extends Parser {
                 if (result.getCompletions().size() == 0) {
                     result.getCompletions().add(arg);
                 }
-                result.setResult(arg);
-                context.getResults().add(result);
-                return true;
+                result.getResults().add(arg);
+                return result;
             }
 
             if (alias.startsWith(arg)) {
@@ -63,12 +62,11 @@ public class LiteralParser extends Parser {
                     result.getCompletions().add(alias);
                 }
                 if (alias.equals(arg)) {
-                    result.setResult(arg);
-                    context.getResults().add(result);
-                    return true;
+                    result.getResults().add(arg);
+                    return result;
                 }
             }
         }
-        return false;
+        return result;
     }
 }

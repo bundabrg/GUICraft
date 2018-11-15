@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf;
+package au.com.grieve.bcf.api;
 
+import au.com.grieve.bcf.api.ArgData;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,8 +41,7 @@ public class ParserResult {
     private List<String> completions = new ArrayList<>();
 
     @Getter
-    @Setter
-    private Object result;
+    private List<Object> results = new ArrayList<>();
 
     public ParserResult(ArgData data) {
         this(data, new HashMap<>());
@@ -52,7 +51,7 @@ public class ParserResult {
     public ParserResult(ArgData data, Map<String, String> defaultParameters) {
         this.data = data;
         this.parameters.putAll(defaultParameters);
-        this.parameters.putAll(data.parameters);
+        this.parameters.putAll(data.getParameters());
     }
 
     // Set a parameter if its not already defined

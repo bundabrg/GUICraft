@@ -20,11 +20,12 @@ package au.com.grieve.bcf;
 
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Command;
-import au.com.grieve.bcf.parsers.DoubleParser;
-import au.com.grieve.bcf.parsers.IntegerParser;
-import au.com.grieve.bcf.parsers.LiteralParser;
+import au.com.grieve.bcf.api.ArgData;
+import au.com.grieve.bcf.api.ArgumentParser;
+import au.com.grieve.bcf.api.BaseCommand;
+import au.com.grieve.bcf.api.CommandManager;
+import au.com.grieve.bcf.api.TreeNode;
 import au.com.grieve.bcf.parsers.PlayerParser;
-import au.com.grieve.bcf.parsers.StringParser;
 import au.com.grieve.bcf.utils.ReflectUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -37,39 +38,29 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CommandManager {
+public class BukkitCommandManager extends CommandManager {
 
     private final JavaPlugin plugin;
     private final CommandMap commandMap;
-    private Map<String, RootCommand> commands = new HashMap<>();
-    private Map<String, Parser> parsers = new HashMap<>();
-    private Parser literalParser = new LiteralParser();
-    private Parser defaultParser = new StringParser();
 
-    public CommandManager(JavaPlugin plugin) {
+    public BukkitCommandManager(JavaPlugin plugin) {
+        super();
         this.plugin = plugin;
         this.commandMap = hookCommandMap();
 
         // Register Default Parsers
         registerParser("player", new PlayerParser());
-        registerParser("string", new StringParser());
-        registerParser("int", new IntegerParser());
-        registerParser("double", new DoubleParser());
-
-
     }
 
     private CommandMap hookCommandMap() {
-        CommandMap commandMap = null;
+        CommandMap commandMap;
         Server server = Bukkit.getServer();
-        Method getCommandMap = null;
+        Method getCommandMap;
         try {
             getCommandMap = server.getClass().getDeclaredMethod("getCommandMap");
             getCommandMap.setAccessible(true);
@@ -126,7 +117,7 @@ public class CommandManager {
                 if (aliases.length == 0) {
                     aliases = new String[]{cmd.getClass().getSimpleName().toLowerCase()};
                 }
-                RootCommand command = new RootCommand(parser, aliases[0]);
+                BukkitRootCommand command = new BukkitRootCommand(parser, aliases[0]);
                 command.setAliases(Arrays.asList(aliases));
                 commandMap.register(aliases[0], plugin.getName().toLowerCase(), command);
 
@@ -141,38 +132,14 @@ public class CommandManager {
 
             if (argAnnotation != null && argAnnotation.value().trim().length() > 0) {
                 for (TreeNode<ArgData> t : parser.createNode(parentArg + " " + argAnnotation.value().trim())) {
-                    t.data.method = m;
-                    t.data.command = cmd;
+                    t.data.setMethod(m);
+                    t.data.setCommand(cmd);
                 }
             }
         }
 
         // Debug
         System.err.println("\n" + parser.walkTree());
-    }
-
-    public ArgumentParser createParser() {
-        return createParser(null);
-    }
-
-    public ArgumentParser createParser(String path) {
-        return new ArgumentParser(this, path);
-    }
-
-    public void registerParser(String name, Parser parser) {
-        this.parsers.put("@" + name, parser);
-    }
-
-    public void unregisterParser(String name) {
-        this.parsers.remove("@" + name);
-    }
-
-    public Parser getParser(String name) {
-        if (name.startsWith("@")) {
-            return parsers.getOrDefault(name, defaultParser);
-        } else {
-            return literalParser;
-        }
     }
 
 }

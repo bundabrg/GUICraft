@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf;
+package au.com.grieve.bcf.api;
 
 import lombok.Data;
 

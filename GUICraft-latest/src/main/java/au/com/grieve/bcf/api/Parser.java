@@ -16,29 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf;
+package au.com.grieve.bcf.api;
 
-import lombok.Data;
-import org.bukkit.command.CommandSender;
+import au.com.grieve.bcf.api.exceptions.ParserException;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Data
-public class ParserContext {
-    // List of Results
-    private List<ParserResult> results = new ArrayList<>();
+public abstract class Parser {
 
-    // Bukkit Command Sender
-    private CommandSender sender;
-
-    public Object clone() throws CloneNotSupportedException {
-        ParserContext clone = (ParserContext) super.clone();
-
-        // Clone Results
-        clone.results = new ArrayList<>(results);
-
-        return clone;
-    }
+    /**
+     * Return a list of resolved objects and their text names based upon the arguments provided.
+     */
+    public abstract ParserResult resolve(ArgData data, List<String> args, ParserContext context) throws ParserException;
 
 }

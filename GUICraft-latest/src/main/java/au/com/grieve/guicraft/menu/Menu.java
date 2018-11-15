@@ -18,9 +18,10 @@
 
 package au.com.grieve.guicraft.menu;
 
-import au.com.grieve.bcf.ArgData;
-import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.ParserResult;
+import au.com.grieve.bcf.api.ArgData;
+import au.com.grieve.bcf.api.Parser;
+import au.com.grieve.bcf.api.ParserContext;
+import au.com.grieve.bcf.api.ParserResult;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageSection;
@@ -52,9 +53,9 @@ public class Menu {
 //        gui.getCommandManager().getCommandReplacements().addReplacement("menu", "menu|m");
 
         // Tab Completions
-        gui.getCommandManager().registerParser("menu.config", new Parser() {
+        gui.getBukkitCommandManager().registerParser("menu.config", new Parser() {
             @Override
-            public ParserResult resolve(CommandSender sender, List<String> args, ArgData data) {
+            public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
                 ParserResult result = new ParserResult(data);
 
                 if (args.size() == 0) {
@@ -69,18 +70,18 @@ public class Menu {
                         .limit(20)
                         .collect(Collectors.toList()));
 
-                result.setResult(gui.getLocalConfig().getResolver("menu").getKeys().stream()
+                result.getResults().addAll(gui.getLocalConfig().getResolver("menu").getKeys().stream()
                         .filter(s -> s.equals(arg))
-                        .findFirst()
-                        .orElse(null));
+                        .limit(1)
+                        .collect(Collectors.toList()));
 
                 return result;
             }
         });
 
-        gui.getCommandManager().registerParser("menu.package", new Parser() {
+        gui.getBukkitCommandManager().registerParser("menu.package", new Parser() {
             @Override
-            public ParserResult resolve(CommandSender sender, List<String> args, ArgData data) {
+            public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
                 ParserResult result = new ParserResult(data);
 
                 if (args.size() == 0) {
@@ -98,11 +99,11 @@ public class Menu {
                 int index = arg.lastIndexOf('.');
                 String pkg = index == -1 ? arg : arg.substring(0, index);
 
-                result.setResult(gui.getLocalConfig().getResolver("menu").getPackages().stream()
+                result.getResults().addAll(gui.getLocalConfig().getResolver("menu").getPackages().stream()
                         .filter(s -> s.equals(pkg) && index > arg.length())
-                        .findFirst()
+                        .limit(1)
                         .map(s -> arg)
-                        .orElse(null));
+                        .collect(Collectors.toList()));
 
                 return result;
             }
@@ -112,7 +113,7 @@ public class Menu {
         registerMenuType("inventory", InventoryMenu.class);
 
         // Commands
-        gui.getCommandManager().registerCommand(new MenuCommands());
+        gui.getBukkitCommandManager().registerCommand(new MenuCommands());
 
     }
 

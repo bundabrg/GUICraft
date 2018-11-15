@@ -16,29 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf.parsers;
+package au.com.grieve.bcf.api.exceptions;
 
-import au.com.grieve.bcf.ArgData;
-import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.ParserContext;
-import au.com.grieve.bcf.ParserResult;
-
-import java.util.List;
-
-public class StringParser extends Parser {
-    @Override
-    public boolean resolve(List<String> args, ParserContext context, ArgData data) {
-        ParserResult result = new ParserResult(data);
-
-        if (args.size() == 0) {
-            return false;
-        }
-
-        String arg = args.remove(0);
-
-        result.getArgs().add(arg);
-        result.setResult(arg);
-        context.getResults().add(result);
-        return true;
+public class ParserArgumentException extends ParserException {
+    public ParserArgumentException(String message) {
+        super(message);
     }
 }

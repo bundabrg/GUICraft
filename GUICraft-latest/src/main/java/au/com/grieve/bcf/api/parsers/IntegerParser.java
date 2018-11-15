@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf.parsers;
+package au.com.grieve.bcf.api.parsers;
 
-import au.com.grieve.bcf.ArgData;
-import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.ParserContext;
-import au.com.grieve.bcf.ParserResult;
+import au.com.grieve.bcf.api.ArgData;
+import au.com.grieve.bcf.api.Parser;
+import au.com.grieve.bcf.api.ParserContext;
+import au.com.grieve.bcf.api.ParserResult;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,11 +29,11 @@ import java.util.stream.IntStream;
 
 public class IntegerParser extends Parser {
     @Override
-    public boolean resolve(List<String> args, ParserContext context, ArgData data) {
+    public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
         ParserResult result = new ParserResult(data);
 
         if (args.size() == 0) {
-            return false;
+            return result;
         }
 
         String arg = args.remove(0);
@@ -42,7 +42,7 @@ public class IntegerParser extends Parser {
             argInt = Integer.valueOf(arg);
         } catch (NumberFormatException e) {
             if (arg.length() != 0) {
-                return false;
+                return result;
             }
             argInt = null;
         }
@@ -60,16 +60,14 @@ public class IntegerParser extends Parser {
                     .collect(Collectors.toList()));
 
             if (argInt != null && (argInt >= min && argInt <= max)) {
-                result.setResult(argInt);
+                result.getResults().add(argInt);
             }
         } else {
             if (argInt != null) {
-                result.setResult(argInt);
+                result.getResults().add(argInt);
             }
         }
 
-        context.getResults().add(result);
-
-        return true;
+        return result;
     }
 }

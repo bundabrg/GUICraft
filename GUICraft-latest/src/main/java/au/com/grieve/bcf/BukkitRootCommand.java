@@ -18,6 +18,10 @@
 
 package au.com.grieve.bcf;
 
+import au.com.grieve.bcf.api.ArgumentParser;
+import au.com.grieve.bcf.api.BaseCommand;
+import au.com.grieve.bcf.api.ParserResult;
+import au.com.grieve.bcf.api.RootCommand;
 import lombok.Getter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -29,19 +33,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class RootCommand extends Command {
+public class BukkitRootCommand extends Command implements RootCommand {
     @Getter
     private ArgumentParser parser;
 
-    protected RootCommand(ArgumentParser parser, String name) {
+    protected BukkitRootCommand(ArgumentParser parser, String name) {
         super(name);
         this.parser = parser;
     }
 
     @Override
     public boolean execute(CommandSender sender, String alias, String[] args) {
-        List<ParserResult> result = parser.resolve(sender, args);
-        System.err.println("Result: " + result.stream().map(r -> r.getResult()).collect(Collectors.toList()));
+        BukkitParserContext context = new BukkitParserContext();
+        context.setSender(sender);
+
+        List<ParserResult> result = parser.resolve(args, context);
+
+        System.err.println("Result: " + result.stream().map(r -> r.getResults().toArray()).collect(Collectors.toList()));
         if (result.size() > 0) {
             Method method = result.get(result.size() - 1).getData().getMethod();
             BaseCommand cmd = result.get(result.size() - 1).getData().getCommand();
@@ -52,16 +60,14 @@ public class RootCommand extends Command {
                         Stream.of(sender),
                         result.stream()
                                 .filter(r -> !r.getParameters().getOrDefault("suppress", "false").equals("true"))
-                                .map(ParserResult::getResult)
+                                .flatMap(r -> r.getResults().stream())
                 )
                         .limit(method.getParameterCount()).collect(Collectors.toList());
 
                 // Fill out extra parameters with null
                 while (objs.size() < method.getParameterCount()) {
-                    System.err.println("Adding null" + null);
                     objs.add(null);
                 }
-                System.err.println("OO: " + objs);
 
                 System.err.println("O: " + Stream.of(objs.toArray())
                         .map(p -> {
@@ -84,6 +90,9 @@ public class RootCommand extends Command {
 
     @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
-        return parser.complete(sender, args);
+        BukkitParserContext context = new BukkitParserContext();
+        context.setSender(sender);
+
+        return parser.complete(args, context);
     }
 }

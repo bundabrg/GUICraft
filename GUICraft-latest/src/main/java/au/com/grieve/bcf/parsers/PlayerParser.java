@@ -18,10 +18,11 @@
 
 package au.com.grieve.bcf.parsers;
 
-import au.com.grieve.bcf.ArgData;
-import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.ParserContext;
-import au.com.grieve.bcf.ParserResult;
+import au.com.grieve.bcf.BukkitParserContext;
+import au.com.grieve.bcf.api.ArgData;
+import au.com.grieve.bcf.api.Parser;
+import au.com.grieve.bcf.api.ParserContext;
+import au.com.grieve.bcf.api.ParserResult;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.HumanEntity;
@@ -41,11 +42,11 @@ import java.util.stream.Collectors;
  */
 public class PlayerParser extends Parser {
     @Override
-    public boolean resolve(List<String> args, ParserContext context, ArgData data) {
+    public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
         ParserResult result = new ParserResult(data);
 
         if (args.size() == 0) {
-            return false;
+            return result;
         }
 
         String arg = args.remove(0);
@@ -60,12 +61,12 @@ public class PlayerParser extends Parser {
                         .collect(Collectors.toList()));
 
                 if (arg.equals("@self")) {
-                    result.setResult(context.getSender());
+                    result.getResults().add(((BukkitParserContext) context).getSender());
                 } else {
-                    result.setResult(Bukkit.getOnlinePlayers().stream()
+                    result.getResults().addAll(Bukkit.getOnlinePlayers().stream()
                             .filter(p -> p.getName().equals(arg))
-                            .findFirst()
-                            .orElse(null));
+                            .limit(1)
+                            .collect(Collectors.toList()));
                 }
                 break;
             default:
@@ -76,17 +77,15 @@ public class PlayerParser extends Parser {
                         .collect(Collectors.toList()));
 
                 if (arg.equals("@self")) {
-                    result.setResult(Bukkit.getOfflinePlayer(((Player) context.getSender()).getUniqueId()));
+                    result.getResults().add(Bukkit.getOfflinePlayer(((Player) ((BukkitParserContext) context).getSender()).getUniqueId()));
                 } else {
-                    result.setResult(Arrays.stream(Bukkit.getOfflinePlayers())
+                    result.getResults().addAll(Arrays.stream(Bukkit.getOfflinePlayers())
                             .filter(p -> p.getName().equals(arg))
-                            .findFirst()
-                            .orElse(null));
+                            .limit(1)
+                            .collect(Collectors.toList()));
                 }
         }
 
-        context.getResults().add(result);
-
-        return true;
+        return result;
     }
 }

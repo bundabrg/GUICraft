@@ -16,7 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf.exceptions;
+package au.com.grieve.bcf.api;
 
-public class ParserEndException extends ParserException {
+import lombok.Getter;
+
+public interface RootCommand {
+
+    ArgumentParser getParser();
 }

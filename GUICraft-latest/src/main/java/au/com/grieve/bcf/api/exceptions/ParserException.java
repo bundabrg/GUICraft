@@ -16,8 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf;
+package au.com.grieve.bcf.api.exceptions;
 
-public abstract class BaseCommand {
+public class ParserException extends Exception {
 
+    public ParserException() {
+        this(null, null);
+    }
+
+    public ParserException(String message) {
+        this(message, null);
+    }
+
+    public ParserException(String message, Throwable err) {
+        super(message, err);
+    }
 }

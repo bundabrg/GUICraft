@@ -16,22 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf.parsers;
+package au.com.grieve.bcf.api.parsers;
 
-import au.com.grieve.bcf.ArgData;
-import au.com.grieve.bcf.Parser;
-import au.com.grieve.bcf.ParserContext;
-import au.com.grieve.bcf.ParserResult;
+import au.com.grieve.bcf.api.ArgData;
+import au.com.grieve.bcf.api.Parser;
+import au.com.grieve.bcf.api.ParserContext;
+import au.com.grieve.bcf.api.ParserResult;
 
 import java.util.List;
 
 public class DoubleParser extends Parser {
     @Override
-    public boolean resolve(List<String> args, ParserContext context, ArgData data) {
+    public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
         ParserResult result = new ParserResult(data);
 
         if (args.size() == 0) {
-            return false;
+            return result;
         }
 
         String arg = args.remove(0);
@@ -41,7 +41,7 @@ public class DoubleParser extends Parser {
             argDouble = Double.valueOf(arg);
         } catch (NumberFormatException e) {
             if (arg.length() > 0) {
-                return false;
+                return result;
             }
             argDouble = null;
         }
@@ -49,10 +49,9 @@ public class DoubleParser extends Parser {
 
         result.getArgs().add(arg);
         if (argDouble != null) {
-            result.setResult(argDouble);
+            result.getResults().add(argDouble);
         }
 
-        context.getResults().add(result);
-        return true;
+        return result;
     }
 }

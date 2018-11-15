@@ -18,7 +18,7 @@
 
 package au.com.grieve.guicraft;
 
-import au.com.grieve.bcf.CommandManager;
+import au.com.grieve.bcf.BukkitCommandManager;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.YamlPackage;
@@ -38,7 +38,7 @@ public class GUICraft extends VersionPlugin {
     PackageConfiguration localConfig;
     // Variables
     @Getter
-    private CommandManager commandManager;
+    private BukkitCommandManager bukkitCommandManager;
 
 
     public GUICraft() {
@@ -90,7 +90,7 @@ public class GUICraft extends VersionPlugin {
     }
 
     private void initCommandManager() {
-        commandManager = new CommandManager(getPlugin());
+        bukkitCommandManager = new BukkitCommandManager(getPlugin());
 
         // Replacements
 //        commandManager.getCommandReplacements().addReplacement("guicraft", "guicraft|ui|gc");
@@ -119,7 +119,7 @@ public class GUICraft extends VersionPlugin {
     }
 
     private void registerCommands() {
-        commandManager.registerCommand(new GUICraftCommand());
+        bukkitCommandManager.registerCommand(new GUICraftCommand());
     }
 
 }

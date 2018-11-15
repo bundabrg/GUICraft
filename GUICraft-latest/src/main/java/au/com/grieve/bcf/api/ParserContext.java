@@ -16,10 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf.exceptions;
+package au.com.grieve.bcf.api;
 
-public class ParserArgumentException extends ParserException {
-    public ParserArgumentException(String message) {
-        super(message);
+import lombok.Data;
+import org.bukkit.command.CommandSender;
+
+@Data
+public class ParserContext implements Cloneable {
+    public Object clone() throws CloneNotSupportedException {
+        ParserContext clone = (ParserContext) super.clone();
+
+        return clone;
     }
+
 }

@@ -20,37 +20,29 @@ package au.com.grieve.bcf.api;
 
 import au.com.grieve.bcf.api.parsers.DoubleParser;
 import au.com.grieve.bcf.api.parsers.IntegerParser;
-import au.com.grieve.bcf.api.parsers.LiteralParser;
 import au.com.grieve.bcf.api.parsers.StringParser;
+import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class CommandManager {
 
     protected Map<String, RootCommand> commands = new HashMap<>();
-    protected Map<String, Parser> parsers = new HashMap<>();
-    protected Parser literalParser = new LiteralParser();
-    protected Parser defaultParser = new StringParser();
+    protected Map<String, Class<? extends Parser>> parsers = new HashMap<>();
 
     public CommandManager() {
         // Register Default Parsers
-        registerParser("string", new StringParser());
-        registerParser("int", new IntegerParser());
-        registerParser("double", new DoubleParser());
+        registerParser("string", StringParser.class);
+        registerParser("int", IntegerParser.class);
+        registerParser("double", DoubleParser.class);
     }
 
     public abstract void registerCommand(BaseCommand cmd);
 
-    public ArgumentParser createParser() {
-        return createParser(null);
-    }
-
-    public ArgumentParser createParser(String path) {
-        return new ArgumentParser(this, path);
-    }
-
-    public void registerParser(String name, Parser parser) {
+    public void registerParser(String name, Class<? extends Parser> parser) {
         this.parsers.put("@" + name, parser);
     }
 
@@ -58,12 +50,8 @@ public abstract class CommandManager {
         this.parsers.remove("@" + name);
     }
 
-    public Parser getParser(String name) {
-        if (name.startsWith("@")) {
-            return parsers.getOrDefault(name, defaultParser);
-        } else {
-            return literalParser;
-        }
+    public List<Parser> resolve(ParserNode node, String[] args, ParserContext context) {
+        return new ArrayList<>();
     }
 
 }

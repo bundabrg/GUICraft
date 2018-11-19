@@ -19,10 +19,23 @@
 package au.com.grieve.bcf.api;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.command.CommandSender;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class ParserContext implements Cloneable {
+
+    private List<ArgData> switches = new ArrayList<>();
+    private CommandManager manager;
+
+    public ParserContext(CommandManager manager) {
+        this.manager = manager;
+    }
+
     public Object clone() throws CloneNotSupportedException {
         ParserContext clone = (ParserContext) super.clone();
 

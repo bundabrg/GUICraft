@@ -18,27 +18,51 @@
 
 package au.com.grieve.bcf.api;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.IOException;
-import java.io.Reader;
+import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Data
-public class ArgData {
-    String arg;
+public class ParserNodeData {
+    @Getter
+    String name;
+    @Getter
     Map<String, String> parameters = new HashMap<>();
-
-    // Method to Call
+    @Getter
     BaseCommand command;
+    @Getter
     Method method;
 
-    ArgData(String arg) {
-        this.arg = arg;
+
+    public ParserNodeData() {
+
+    }
+
+    public ParserNodeData(String name) {
+        this();
+        this.name = name;
+    }
+
+    public ParserNodeData(String name, Map<String, String> parameters) {
+        this(name);
+        this.parameters = parameters;
+    }
+
+    public ParserNodeData(String name, Map<String, String> parameters, BaseCommand command, Method method) {
+        this(name, parameters);
+        this.command = command;
+        this.method = method;
+    }
+
+    public void setMethod(BaseCommand command, Method method) {
+        this.command = command;
+        this.method = method;
     }
 
     @Override
@@ -47,17 +71,19 @@ public class ArgData {
             return true;
         }
 
-        if (!(obj instanceof ArgData)) {
+        if (!(obj instanceof ParserNodeData)) {
             return false;
         }
 
-        ArgData argData = (ArgData) obj;
-        return argData.arg.equals(arg);
+        ParserNodeData data = (ParserNodeData) obj;
+
+        return data.getName().equals(name);
     }
 
-    public static class Parser {
-        private Reader reader;
-
+    /**
+     * Parse a string and return new Data Nodes
+     */
+    public static class StringParser {
         enum State {
             NAME,
             PARAM_KEY,
@@ -67,31 +93,14 @@ public class ArgData {
             PARAM_END
         }
 
-        public Parser(Reader reader) {
-            this.reader = reader;
-        }
+        public static List<ParserNodeData> parse(StringReader reader) {
+            List<ParserNodeData> result = new ArrayList<>();
 
-        public List<List<ArgData>> parse() {
-            List<List<ArgData>> result = new ArrayList<>();
-
-            List<ArgData> nextData = parseNext();
-            while (nextData.size() > 0) {
-                result.add(nextData);
-                nextData = parseNext();
-            }
-
-            return result;
-        }
-
-        private List<ArgData> parseNext() {
-            List<ArgData> result = new ArrayList<>();
             State state = State.NAME;
             StringBuilder name = new StringBuilder();
             StringBuilder key = new StringBuilder();
             StringBuilder value = new StringBuilder();
-
             Map<String, String> parameters = new HashMap<>();
-
 
             int i;
             char quote = ' ';
@@ -114,21 +123,17 @@ public class ArgData {
                         switch (" (,".indexOf(c)) {
                             case 0:
                                 if (name.length() > 0) {
-                                    result.add(new ArgData(name.toString()));
+                                    result.add(new ParserNodeData(name.toString()));
                                     return result;
                                 }
                                 break;
                             case 1:
-                                if (name.length() > 0) {
-                                    result.add(new ArgData(name.toString()));
-                                }
-
                                 state = State.PARAM_KEY;
                                 parameters = new HashMap<>();
                                 key = new StringBuilder();
                                 break;
                             case 2:
-                                result.add(new ArgData(name.toString()));
+                                result.add(new ParserNodeData(name.toString()));
                                 name = new StringBuilder();
                                 break;
                             default:
@@ -154,9 +159,7 @@ public class ArgData {
                                 break;
                             case 1:
                                 parameters.put(key.toString().trim(), value.toString().trim());
-                                for (ArgData a : result) {
-                                    a.parameters = parameters;
-                                }
+                                result.add(new ParserNodeData(name.toString(), parameters));
                                 state = State.PARAM_END;
                                 break;
                             case 2:
@@ -220,17 +223,12 @@ public class ArgData {
             } while(true);
 
             if (state == State.NAME && name.length() > 0) {
-                result.add(new ArgData(name.toString()));
+                result.add(new ParserNodeData(name.toString()));
             }
 
             return result;
-
         }
+
     }
 
-    public static List<List<ArgData>> parse(Reader reader) {
-        Parser parser = new Parser(reader);
-        return parser.parse();
-    }
 }
-

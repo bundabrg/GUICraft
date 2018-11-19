@@ -18,15 +18,28 @@
 
 package au.com.grieve.bcf.api;
 
-import au.com.grieve.bcf.api.exceptions.ParserException;
-
 import java.util.List;
 
 public abstract class Parser {
 
-    /**
-     * Return a list of resolved objects and their text names based upon the arguments provided.
-     */
-    public abstract ParserResult resolve(ArgData data, List<String> args, ParserContext context) throws ParserException;
+    ArgData data;
+    List<String> args;
+    ParserContext context;
+
+    public Parser(ArgData data, List<String> args, ParserContext context) {
+        this.data = data;
+        this.args = args;
+        this.context = context;
+    }
+
+    public boolean isValid() {
+        return false;
+    }
+
+    public abstract List<String> getCompletions();
+    public abstract Object getResult();
+
+
+//    public abstract ParserResult resolve(ArgData data, List<String> args, ParserContext context) throws ParserException;
 
 }

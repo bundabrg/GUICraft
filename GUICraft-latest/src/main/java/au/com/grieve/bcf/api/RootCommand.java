@@ -18,9 +18,7 @@
 
 package au.com.grieve.bcf.api;
 
-import lombok.Getter;
-
 public interface RootCommand {
 
-    ArgumentParser getParser();
+    ParserNode getNode();
 }

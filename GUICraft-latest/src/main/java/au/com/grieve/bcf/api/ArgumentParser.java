@@ -26,48 +26,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ArgumentParser {
-    private final CommandManager manager;
     @Getter
     private TreeNode<ArgData> data = new TreeNode<>();
 
-    public ArgumentParser(CommandManager manager) {
-        this.manager = manager;
+
+    public ArgumentParser() {
+        this(null);
     }
 
-    public ArgumentParser(CommandManager manager, String path) {
-        this.manager = manager;
+
+    public ArgumentParser(String path) {
         if (path != null) {
             createNode(path);
         }
     }
 
-
-    public String walkTree() {
-        StringBuilder result = new StringBuilder();
-
-        for (TreeNode<ArgData> n : data.children) {
-            result.append(walkTree(n, 0));
-        }
-        return result.toString();
-    }
-
-    private String walkTree(TreeNode<ArgData> node, int depth) {
-        StringBuilder result = new StringBuilder();
-
-        char[] repeat = new char[depth];
-        Arrays.fill(repeat, ' ');
-        String pad = new String(repeat);
-
-        // Our name
-        result.append(pad).append(node.data.getArg()).append(" - ").append(node.data.getParameters()).append("\n");
-
-        for (TreeNode<ArgData> n : node.children) {
-            result.append(walkTree(n, depth + 1));
-        }
-        return result.toString();
-    }
 
     /**
      * Create node(s) designated by path including any missing parent nodes
@@ -114,32 +90,48 @@ public class ArgumentParser {
     List<ParserResult> resolve(TreeNode<ArgData> node, List<String> args, ParserContext context) {
         List<ParserResult> results = new ArrayList<>();
 
-        // If we have a default argument then add it now if needed
-        if (args.size() == 0 && node.data.getParameters().containsKey("default")) {
-            args.addAll(Arrays.asList(node.data.getParameters().get("default").split(" ")));
-        }
-
         if (!node.isRoot() && node.data != null && node.data.getArg() != null) {
-            Parser parser = manager.getParser(node.data.getArg());
+            // Handle switches
+            if (node.data.getParameters().containsKey("switch")) {
+                context.getSwitches().add(node.data);
+            } else {
+                boolean isSwitch = false;
+                Parser parser;
+                if (args.size() > 0 && args.get(0).length() > 0 && args.get(0).startsWith("-")) {
+                    parser = context.getManager().getSwitchParser();
+                    isSwitch = true;
+                } else {
+                    parser = context.getManager().getParser(node.data.arg);
+                }
 
-            if (parser == null) {
-                return null;
-            }
-
-            try {
-                ParserResult result = parser.resolve(node.data, args, context);
-                if (result == null) {
+                if (parser == null) {
                     return results;
                 }
 
-                // If its not optional then end of the line
-                if (result.getResults().size() == 0 && !result.getParameters().getOrDefault("required", "true").equals("false")) {
-                    return results;
+                try {
+                    // If we have a default argument then add it now if needed
+                    if (args.size() == 0 && node.data.getParameters().containsKey("default")) {
+                        args.addAll(Arrays.asList(node.data.getParameters().get("default").split(" ")));
+                    }
+
+                    ParserResult result = parser.resolve(node.data, args, context);
+                    if (result == null) {
+                        return results;
+                    }
+
+                    // If its not optional then end of the line
+                    if (result.getResults().size() == 0 && !result.getParameters().getOrDefault("required", "true").equals("false")) {
+                        return results;
+                    }
+
+                    results.add(result);
+                } catch (ParserException e) {
+                    e.printStackTrace();
                 }
 
-                results.add(result);
-            } catch (ParserException e) {
-                e.printStackTrace();
+                if (isSwitch) {
+                    return resolve(node, args, context);
+                }
             }
         }
 
@@ -177,32 +169,48 @@ public class ArgumentParser {
         List<String> results = new ArrayList<>();
 
         if (!node.isRoot() && node.data != null && node.data.arg != null) {
-            Parser parser = manager.getParser(node.data.arg);
+            // Handle switches
+            if (node.data.getParameters().containsKey("switch")) {
+                context.getSwitches().add(node.data);
+            } else {
+                boolean isSwitch = false;
+                Parser parser;
+                if (args.size() > 0 && args.get(0).length() > 0 && args.get(0).startsWith("-")) {
+                    parser = context.getManager().getSwitchParser();
+                    isSwitch = true;
+                } else {
+                    parser = context.getManager().getParser(node.data.arg);
+                }
 
-            if (parser == null) {
-                return results;
-            }
-
-            try {
-                ParserResult result = parser.resolve(node.data, args, context);
-
-                if (result == null) {
+                if (parser == null) {
                     return results;
                 }
 
-                // If no arguments left, store the completions
-                if (args.size() == 0) {
-                    results.addAll(result.getCompletions());
-                    return results;
+                try {
+                    ParserResult result = parser.resolve(node.data, args, context);
+
+                    if (result == null) {
+                        return results;
+                    }
+
+                    // If no arguments left, store the completions
+                    if (args.size() == 0) {
+                        results.addAll(result.getCompletions());
+                        return results;
+                    }
+
+                    // If its not optional and failed to resolve then end of the line
+                    if (result.getResults().size() == 0 && !result.getParameters().getOrDefault("required", "true").equals("false")) {
+                        return results;
+                    }
+
+                } catch (ParserException e) {
+                    e.printStackTrace();
                 }
 
-                // If its not optional and failed to resolve then end of the line
-                if (result.getResults().size() == 0 && !result.getParameters().getOrDefault("required", "true").equals("false")) {
-                    return results;
+                if (isSwitch) {
+                    return complete(node, args, context);
                 }
-
-            } catch (ParserException e) {
-                e.printStackTrace();
             }
         }
 

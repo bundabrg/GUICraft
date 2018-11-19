@@ -20,15 +20,15 @@ package au.com.grieve.bcf.api;
 
 import java.util.Iterator;
 
-public class TreeNodeIter<T> implements Iterator<TreeNode<T>> {
+public class ParserNodeIter<T> implements Iterator<ParserNode> {
 
-    private TreeNode<T> treeNode;
+    private ParserNode treeNode;
     private ProcessStages doNext;
-    private TreeNode<T> next;
-    private Iterator<TreeNode<T>> childrenCurNodeIter;
-    private Iterator<TreeNode<T>> childrenSubNodeIter;
+    private ParserNode next;
+    private Iterator<ParserNode> childrenCurNodeIter;
+    private Iterator<ParserNode> childrenSubNodeIter;
 
-    public TreeNodeIter(TreeNode<T> treeNode) {
+    public ParserNodeIter(ParserNode treeNode) {
         this.treeNode = treeNode;
         this.doNext = ProcessStages.ProcessParent;
         this.childrenCurNodeIter = treeNode.children.iterator();
@@ -45,7 +45,7 @@ public class TreeNodeIter<T> implements Iterator<TreeNode<T>> {
 
         if (this.doNext == ProcessStages.ProcessChildCurNode) {
             if (childrenCurNodeIter.hasNext()) {
-                TreeNode<T> childDirect = childrenCurNodeIter.next();
+                ParserNode childDirect = childrenCurNodeIter.next();
                 childrenSubNodeIter = childDirect.iterator();
                 this.doNext = ProcessStages.ProcessChildSubNode;
                 return hasNext();
@@ -70,7 +70,7 @@ public class TreeNodeIter<T> implements Iterator<TreeNode<T>> {
     }
 
     @Override
-    public TreeNode<T> next() {
+    public ParserNode next() {
         return this.next;
     }
 

@@ -20,11 +20,10 @@ package au.com.grieve.bcf;
 
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Command;
-import au.com.grieve.bcf.api.ArgData;
-import au.com.grieve.bcf.api.ArgumentParser;
 import au.com.grieve.bcf.api.BaseCommand;
 import au.com.grieve.bcf.api.CommandManager;
-import au.com.grieve.bcf.api.TreeNode;
+import au.com.grieve.bcf.api.ParserNode;
+import au.com.grieve.bcf.api.RootCommand;
 import au.com.grieve.bcf.parsers.PlayerParser;
 import au.com.grieve.bcf.utils.ReflectUtils;
 import org.bukkit.Bukkit;
@@ -54,7 +53,7 @@ public class BukkitCommandManager extends CommandManager {
         this.commandMap = hookCommandMap();
 
         // Register Default Parsers
-        registerParser("player", new PlayerParser());
+        registerParser("player", PlayerParser.class);
     }
 
     private CommandMap hookCommandMap() {
@@ -93,53 +92,53 @@ public class BukkitCommandManager extends CommandManager {
                 .collect(Collectors.joining(" "));
 
         // Get Root Command, if any
-        String rootCommand = null;
+        RootCommand rootCommand = null;
 
         if (parents.size() > 0) {
             Class<?> rootClass = parents.get(0);
             Command commandAnnotation = rootClass.getAnnotation(Command.class);
             if (commandAnnotation != null) {
-                rootCommand = commandAnnotation.value();
-            }
-        }
+                String rootString = commandAnnotation.value();
+                String[] aliases = rootString.split("\\|");
 
-        // Get Parser, if any
-        ArgumentParser parser = null;
-        if (rootCommand != null && commands.containsKey(rootCommand)) {
-            parser = commands.get(rootCommand).getParser();
-        }
-
-        // No parser? Create it
-        if (parser == null) {
-            parser = createParser();
-            if (rootCommand != null) {
-                String[] aliases = rootCommand.split("\\|");
                 if (aliases.length == 0) {
                     aliases = new String[]{cmd.getClass().getSimpleName().toLowerCase()};
                 }
-                BukkitRootCommand command = new BukkitRootCommand(parser, aliases[0]);
-                command.setAliases(Arrays.asList(aliases));
-                commandMap.register(aliases[0], plugin.getName().toLowerCase(), command);
 
-                commands.put(rootCommand, command);
+                if (!commands.containsKey(aliases[0])) {
+                    BukkitRootCommand bukkitRootCommand = new BukkitRootCommand(this, aliases[0]);
+                    bukkitRootCommand.setAliases(Arrays.asList(aliases));
+                    commandMap.register(aliases[0], plugin.getName().toLowerCase(), bukkitRootCommand);
+
+                    commands.put(aliases[0], bukkitRootCommand);
+                    rootCommand = bukkitRootCommand;
+                } else {
+                    rootCommand = commands.get(aliases[0]);
+                }
             }
         }
 
-        // Add each method to parser
+        // Get Root Node, otherwise create a new one
+        ParserNode rootNode;
+        if (rootCommand == null) {
+            rootNode = new ParserNode();
+        } else {
+            rootNode = rootCommand.getNode();
+        }
+
+        // Add each method to rootNode
         for (Method m : cmd.getClass().getDeclaredMethods()) {
             Arg argAnnotation = m.getAnnotation(Arg.class);
 
-
             if (argAnnotation != null && argAnnotation.value().trim().length() > 0) {
-                for (TreeNode<ArgData> t : parser.createNode(parentArg + " " + argAnnotation.value().trim())) {
-                    t.data.setMethod(m);
-                    t.data.setCommand(cmd);
+                for (ParserNode node : rootNode.create(parentArg + " " + argAnnotation.value().trim())) {
+                    node.getData().setMethod(cmd, m);
                 }
             }
         }
 
         // Debug
-        System.err.println("\n" + parser.walkTree());
+        System.err.println("\n" + rootNode.walkTree());
     }
 
 }

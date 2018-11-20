@@ -18,8 +18,5 @@
 
 package au.com.grieve.bcf.api.exceptions;
 
-public class ParserArgumentException extends ParserException {
-    public ParserArgumentException(String message) {
-        super(message);
-    }
+public class ParserNoResultException extends ParserException {
 }

@@ -18,11 +18,14 @@
 
 package au.com.grieve.bcf.api.parsers;
 
-import au.com.grieve.bcf.api.ArgData;
+import au.com.grieve.bcf.api.CommandManager;
 import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.bcf.api.ParserContext;
-import au.com.grieve.bcf.api.ParserResult;
+import au.com.grieve.bcf.api.ParserNode;
+import au.com.grieve.bcf.api.exceptions.ParserNoResultException;
+import au.com.grieve.bcf.api.exceptions.ParserOutOfArgumentsException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,38 +38,51 @@ import java.util.List;
  * Will use the first matching alias as an alternative for partials
  */
 public class LiteralParser extends Parser {
+
+
+    public LiteralParser(CommandManager manager, ParserNode node, List<String> args, ParserContext context) throws ParserOutOfArgumentsException {
+        super(manager, node, args, context);
+    }
+
     @Override
-    public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
-        ParserResult result = new ParserResult(data);
-        result.setParameter("suppress", "true");
+    protected List<String> completions() {
+        List<String> result = new ArrayList<>();
 
-        if (args.size() == 0) {
-            return result;
-        }
-
-        String arg = args.remove(0);
-
-        result.getArgs().add(arg);
-
-        for (String alias : data.getArg().split("\\|")) {
+        String arg = args.get(0);
+        for (String alias : node.getData().getName().split("\\|")) {
             if (alias.equals("*")) {
-                if (result.getCompletions().size() == 0) {
-                    result.getCompletions().add(arg);
-                }
-                result.getResults().add(arg);
+                result.add(arg);
                 return result;
             }
 
             if (alias.startsWith(arg)) {
-                if (result.getCompletions().size() == 0) {
-                    result.getCompletions().add(alias);
-                }
-                if (alias.equals(arg)) {
-                    result.getResults().add(arg);
-                    return result;
-                }
+                result.add(alias);
+                return result;
             }
         }
+
         return result;
     }
+
+    @Override
+    protected Object result() throws ParserOutOfArgumentsException {
+        if (args.size() == 0) {
+            throw new ParserOutOfArgumentsException();
+        }
+
+        String arg = args.get(0);
+        for (String alias : node.getData().getName().split("\\|")) {
+            if (alias.equals("*")) {
+                return arg;
+            }
+
+            if (alias.equals(arg)) {
+                return arg;
+            }
+        }
+
+        return new ParserNoResultException();
+    }
+
+
 }

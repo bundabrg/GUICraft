@@ -20,9 +20,11 @@ package au.com.grieve.bcf.api;
 
 import au.com.grieve.bcf.api.parsers.DoubleParser;
 import au.com.grieve.bcf.api.parsers.IntegerParser;
+import au.com.grieve.bcf.api.parsers.LiteralParser;
 import au.com.grieve.bcf.api.parsers.StringParser;
 import lombok.Getter;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,15 +45,62 @@ public abstract class CommandManager {
     public abstract void registerCommand(BaseCommand cmd);
 
     public void registerParser(String name, Class<? extends Parser> parser) {
-        this.parsers.put("@" + name, parser);
+        this.parsers.put(name, parser);
     }
 
     public void unregisterParser(String name) {
-        this.parsers.remove("@" + name);
+        this.parsers.remove(name);
     }
 
-    public List<Parser> resolve(ParserNode node, String[] args, ParserContext context) {
-        return new ArrayList<>();
+    /**
+     * Return a list of Parsers for the specified arguments
+     *
+     * A context is passed to provide implementation specific data as well as useful data needed by parsers
+     */
+    public List<Parser> resolve(ParserNode node, List<String> args, ParserContext context) {
+        List<Parser> result = new ArrayList<>();
+
+        for (ParserNode child : node.getChildren()) {
+            ParserNodeData data = child.getData();
+
+            // Check validity
+            if (data == null) {
+                continue;
+            }
+
+            // Make a copy of the context
+            ParserContext childContext;
+            try {
+                childContext = (ParserContext) context.clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+                break;
+            }
+
+            Class<? extends Parser> parserClass = parsers.getOrDefault("@" + data.getName(), LiteralParser.class);
+
+            Parser parser;
+            try {
+                parser = parserClass.getConstructor(CommandManager.class, ParserNode.class, List.class, ParserContext.class)
+                        .newInstance(this, child, args, childContext);
+            } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+                e.printStackTrace();
+                continue;
+            }
+
+            // Valid parser we recurse into
+            if (parser.isValid()) {
+                List<Parser> childResult = resolve(child, new ArrayList<>(args), childContext);
+
+                if ((childResult.size() + 1) > result.size()) {
+                    result = new ArrayList<>();
+                    result.add(parser);
+                    result.addAll(childResult);
+                }
+            }
+        }
+
+        return result;
     }
 
 }

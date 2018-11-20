@@ -18,28 +18,71 @@
 
 package au.com.grieve.bcf.api;
 
+import au.com.grieve.bcf.api.exceptions.ParserNoResultException;
+import au.com.grieve.bcf.api.exceptions.ParserOutOfArgumentsException;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class Parser {
+    // Data
+    protected CommandManager manager;
+    protected List<String> args;
+    protected ParserNode node;
+    protected ParserContext context;
 
-    ArgData data;
-    List<String> args;
-    ParserContext context;
+    // Cache
+    protected List<String> completions;
+    protected Object result;
 
-    public Parser(ArgData data, List<String> args, ParserContext context) {
-        this.data = data;
-        this.args = args;
+    protected Parser(CommandManager manager, ParserNode node, ParserContext context) {
+        this.manager = manager;
+        this.node = node;
         this.context = context;
+    }
+
+    public Parser(CommandManager manager, ParserNode node, List<String> args, ParserContext context) throws ParserOutOfArgumentsException {
+        this(manager, node, context);
+        this.args = arguments(args);
     }
 
     public boolean isValid() {
         return false;
     }
 
-    public abstract List<String> getCompletions();
-    public abstract Object getResult();
+    public List<String> getCompletions() throws ParserOutOfArgumentsException {
+        if (completions == null) {
+            completions = completions();
+        }
+        return completions;
+    }
 
+    public Object getResult() throws ParserNoResultException, ParserOutOfArgumentsException {
+        if (result == null) {
+            result = result();
+        }
+        return result;
+    }
 
-//    public abstract ParserResult resolve(ArgData data, List<String> args, ParserContext context) throws ParserException;
+    // default methods
+
+    /**
+     * Save arguments.
+     *
+     * By default just a single argument is used
+     */
+    protected List<String> arguments(List<String> args) throws ParserOutOfArgumentsException {
+        if (args.size() == 0) {
+            throw new ParserOutOfArgumentsException();
+        }
+
+        return new ArrayList<>(Collections.singletonList(args.remove(0)));
+    }
+
+    // abstract methods
+    protected abstract List<String> completions();
+    protected abstract Object result() throws ParserNoResultException;
+
 
 }

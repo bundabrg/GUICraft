@@ -18,5 +18,5 @@
 
 package au.com.grieve.bcf.api.exceptions;
 
-public class ParserEndException extends ParserException {
+public class ParserOutOfArgumentsException extends ParserException {
 }

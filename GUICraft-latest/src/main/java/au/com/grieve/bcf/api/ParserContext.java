@@ -29,7 +29,6 @@ import java.util.List;
 @Data
 public class ParserContext implements Cloneable {
 
-    private List<ArgData> switches = new ArrayList<>();
     private CommandManager manager;
 
     public ParserContext(CommandManager manager) {
@@ -37,9 +36,7 @@ public class ParserContext implements Cloneable {
     }
 
     public Object clone() throws CloneNotSupportedException {
-        ParserContext clone = (ParserContext) super.clone();
-
-        return clone;
+        return (ParserContext) super.clone();
     }
 
 }

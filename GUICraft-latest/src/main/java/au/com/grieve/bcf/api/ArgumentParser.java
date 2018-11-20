@@ -45,32 +45,6 @@ public class ArgumentParser {
     }
 
 
-    /**
-     * Create node(s) designated by path including any missing parent nodes
-     */
-    public List<TreeNode<ArgData>> createNode(String path) {
-        List<TreeNode<ArgData>> currentNodes = Collections.singletonList(data);
-
-        StringReader reader = new StringReader(path);
-        for (List<ArgData> argDataList : ArgData.parse(reader)) {
-            List<TreeNode<ArgData>> newCurrent = new ArrayList<>();
-            for (TreeNode<ArgData> node : currentNodes) {
-                for (ArgData argData : argDataList) {
-                    newCurrent.add(node.children.stream()
-                            .filter(c -> c.data.getArg().equals(argData.getArg()))
-                            .findFirst()
-                            .orElseGet(() -> node.addChild(argData)));
-                }
-            }
-            currentNodes = newCurrent;
-        }
-
-        if (currentNodes.size() > 0 && currentNodes.get(0) == data) {
-            return new ArrayList<>();
-        }
-
-        return currentNodes;
-    }
 
 //    public List<Object> getData(CommandSender sender, String[] args) {
 //        return getData(sender, Arrays.asList(args), data);

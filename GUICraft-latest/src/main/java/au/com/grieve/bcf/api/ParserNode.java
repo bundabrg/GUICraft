@@ -30,8 +30,10 @@ import java.util.List;
 
 public class ParserNode implements Iterable<ParserNode> {
 
-    public ParserNode parent;
-    public List<ParserNode> children;
+    @Getter
+    ParserNode parent;
+    @Getter
+    List<ParserNode> children;
     private List<ParserNode> elementsIndex;
 
     // Data

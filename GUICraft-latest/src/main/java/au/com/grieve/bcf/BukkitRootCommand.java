@@ -27,6 +27,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class BukkitRootCommand extends Command implements RootCommand {
@@ -45,7 +46,7 @@ public class BukkitRootCommand extends Command implements RootCommand {
     public boolean execute(CommandSender sender, String alias, String[] args) {
         BukkitParserContext context = new BukkitParserContext(manager, sender);
 
-        List<Parser> result = manager.resolve(node, args, context);
+        List<Parser> result = manager.resolve(node, Arrays.asList(args), context);
 
 //        System.err.println("Result: " + String.join(",", result.stream()
 //                .flatMap(r -> r.getResults().stream()
@@ -92,7 +93,7 @@ public class BukkitRootCommand extends Command implements RootCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
         BukkitParserContext context = new BukkitParserContext(manager, sender);
-        List<Parser> result = manager.resolve(node, args, context);
+        List<Parser> result = manager.resolve(node, Arrays.asList(args), context);
         return new ArrayList<>();
     }
 }

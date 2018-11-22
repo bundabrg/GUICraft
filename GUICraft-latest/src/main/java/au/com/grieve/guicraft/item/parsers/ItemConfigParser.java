@@ -16,26 +16,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf.api.parsers;
+package au.com.grieve.guicraft.menu.parsers;
 
 import au.com.grieve.bcf.api.CommandManager;
 import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.bcf.api.ParserContext;
 import au.com.grieve.bcf.api.ParserNode;
-import au.com.grieve.bcf.api.SingleParser;
 import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
 import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
+import au.com.grieve.guicraft.GUICraft;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class StringParser extends SingleParser {
+public class MenuConfigParser extends Parser {
 
-    public StringParser(CommandManager manager, ParserNode node, ParserContext context) {
-        super(manager, node, context);
+    protected MenuConfigParser(CommandManager manager, ParserNode node, String args, ParserContext context) throws ParserRequiredArgumentException {
+        super(manager, node, args, context);
     }
 
     @Override
     protected Object result() throws ParserInvalidResultException {
-        return getInput();
+        return GUICraft.getInstance().getLocalConfig().getResolver("menu").getKeys().stream()
+                .filter(s -> s.equals(getInput()))
+                .findFirst()
+                .orElseThrow(ParserInvalidResultException::new);
+    }
+
+    @Override
+    protected List<String> complete() {
+        return GUICraft.getInstance().getLocalConfig().getResolver("menu").getKeys().stream()
+                .filter(s -> s.startsWith(getInput()))
+                .limit(20)
+                .collect(Collectors.toList());
     }
 }

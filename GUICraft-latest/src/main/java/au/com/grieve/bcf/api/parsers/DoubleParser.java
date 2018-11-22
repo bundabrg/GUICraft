@@ -19,13 +19,13 @@
 package au.com.grieve.bcf.api.parsers;
 
 import au.com.grieve.bcf.api.ArgData;
-import au.com.grieve.bcf.api.Parser;
+import au.com.grieve.bcf.api.BaseParser;
 import au.com.grieve.bcf.api.ParserContext;
 import au.com.grieve.bcf.api.ParserResult;
 
 import java.util.List;
 
-public class DoubleParser extends Parser {
+public class DoubleBaseParser extends BaseParser {
     @Override
     public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
         ParserResult result = new ParserResult(data);

@@ -20,7 +20,7 @@ package au.com.grieve.bcf.parsers;
 
 import au.com.grieve.bcf.BukkitParserContext;
 import au.com.grieve.bcf.api.ArgData;
-import au.com.grieve.bcf.api.Parser;
+import au.com.grieve.bcf.api.BaseParser;
 import au.com.grieve.bcf.api.ParserContext;
 import au.com.grieve.bcf.api.ParserResult;
 import org.bukkit.Bukkit;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  *     any - (default) Any player
  *     online - Only online players
  */
-public class PlayerParser extends Parser {
+public class PlayerBaseParser extends BaseParser {
     @Override
     public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
         ParserResult result = new ParserResult(data);

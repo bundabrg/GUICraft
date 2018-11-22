@@ -19,7 +19,7 @@
 package au.com.grieve.bcf.api.parsers;
 
 import au.com.grieve.bcf.api.ArgData;
-import au.com.grieve.bcf.api.Parser;
+import au.com.grieve.bcf.api.BaseParser;
 import au.com.grieve.bcf.api.ParserContext;
 import au.com.grieve.bcf.api.ParserResult;
 
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class IntegerParser extends Parser {
+public class IntegerBaseParser extends BaseParser {
     @Override
     public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
         ParserResult result = new ParserResult(data);

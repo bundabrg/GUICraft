@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class Parser {
+public abstract class BaseParser implements Parser {
     // Data
     protected CommandManager manager;
     protected List<String> args;
@@ -36,13 +36,13 @@ public abstract class Parser {
     protected List<String> completions;
     protected Object result;
 
-    protected Parser(CommandManager manager, ParserNode node, ParserContext context) {
+    protected BaseParser(CommandManager manager, ParserNode node, ParserContext context) {
         this.manager = manager;
         this.node = node;
         this.context = context;
     }
 
-    public Parser(CommandManager manager, ParserNode node, List<String> args, ParserContext context) throws ParserOutOfArgumentsException {
+    public BaseParser(CommandManager manager, ParserNode node, List<String> args, ParserContext context) throws ParserOutOfArgumentsException {
         this(manager, node, context);
         this.args = arguments(args);
     }

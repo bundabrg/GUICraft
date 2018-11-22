@@ -18,54 +18,76 @@
 
 package au.com.grieve.bcf.api.parsers;
 
-import au.com.grieve.bcf.api.ArgData;
-import au.com.grieve.bcf.api.BaseParser;
+import au.com.grieve.bcf.api.CommandManager;
+import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.bcf.api.ParserContext;
-import au.com.grieve.bcf.api.ParserResult;
+import au.com.grieve.bcf.api.ParserNode;
+import au.com.grieve.bcf.api.SingleParser;
+import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
+import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class IntegerBaseParser extends BaseParser {
+public class IntegerParser extends SingleParser {
+
+    public IntegerParser(CommandManager manager, ParserNode node, ParserContext context) {
+        super(manager, node, context);
+    }
+
     @Override
-    public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
-        ParserResult result = new ParserResult(data);
+    protected List<String> complete() {
+        Map<String, String> parameters = getNode().getData().getParameters();
 
-        if (args.size() == 0) {
-            return result;
-        }
+        if (parameters.containsKey("max")) {
+            int min;
+            int max;
 
-        String arg = args.remove(0);
-        Integer argInt;
-        try {
-            argInt = Integer.valueOf(arg);
-        } catch (NumberFormatException e) {
-            if (arg.length() != 0) {
-                return result;
+            try {
+                max = Integer.valueOf(parameters.get("max"));
+            } catch (NumberFormatException e) {
+                return super.complete();
             }
-            argInt = null;
-        }
 
-        result.getArgs().add(arg);
+            try {
+                min = Integer.valueOf(parameters.getOrDefault("min", "0"));
+            } catch (NumberFormatException e) {
+                min = 0;
+            }
 
-        // Completions use range parameters
-        if (result.getParameters().containsKey("max")) {
-            int max = Integer.valueOf(result.getParameters().get("max"));
-            int min = Integer.valueOf(result.getParameters().getOrDefault("min", "0"));
-            result.getCompletions().addAll(IntStream.rangeClosed(min, max)
+            return IntStream.rangeClosed(min, max)
                     .mapToObj(String::valueOf)
-                    .filter(s -> s.startsWith(arg))
+                    .filter(s -> s.startsWith(getInput()))
                     .limit(20)
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList());
+        }
 
-            if (argInt != null && (argInt >= min && argInt <= max)) {
-                result.getResults().add(argInt);
+        return super.complete();
+    }
+
+    @Override
+    protected Object result() throws ParserInvalidResultException {
+        int result;
+
+        try {
+            result = Integer.valueOf(getInput());
+
+            if (getNode().getData().getParameters().containsKey("min")) {
+                if (result < Integer.valueOf(getNode().getData().getParameters().get("min"))) {
+                    throw new ParserInvalidResultException();
+                }
             }
-        } else {
-            if (argInt != null) {
-                result.getResults().add(argInt);
+
+            if (getNode().getData().getParameters().containsKey("max")) {
+                if (result > Integer.valueOf(getNode().getData().getParameters().get("max"))) {
+                    throw new ParserInvalidResultException();
+                }
             }
+
+        } catch (NumberFormatException e) {
+            throw new ParserInvalidResultException();
         }
 
         return result;

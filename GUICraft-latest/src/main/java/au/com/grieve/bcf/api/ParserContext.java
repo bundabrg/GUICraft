@@ -30,13 +30,20 @@ import java.util.List;
 public class ParserContext implements Cloneable {
 
     private CommandManager manager;
+    @Getter
+    private List<Parser> switches = new ArrayList<>();
 
     public ParserContext(CommandManager manager) {
         this.manager = manager;
     }
 
     public Object clone() throws CloneNotSupportedException {
-        return (ParserContext) super.clone();
+        ParserContext clone = (ParserContext) super.clone();
+
+        // Clone Data
+        clone.switches = new ArrayList<>(switches);
+
+        return clone;
     }
 
 }

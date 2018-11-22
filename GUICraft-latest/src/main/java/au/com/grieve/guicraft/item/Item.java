@@ -18,25 +18,20 @@
 
 package au.com.grieve.guicraft.item;
 
-import au.com.grieve.bcf.api.ArgData;
-import au.com.grieve.bcf.api.Parser;
-import au.com.grieve.bcf.api.ParserContext;
-import au.com.grieve.bcf.api.ParserResult;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageSection;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.item.commands.BukkitCommands;
+import au.com.grieve.guicraft.item.parsers.ItemConfigParser;
+import au.com.grieve.guicraft.item.parsers.ItemPackageParser;
 import au.com.grieve.guicraft.item.types.BukkitItemType;
 import lombok.Getter;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class Item {
     @Getter
@@ -53,65 +48,8 @@ public class Item {
 //        gui.getCommandManager().getCommandReplacements().addReplacement("itemsave", "save|s");
 
         // Tab Completions
-        gui.getBukkitCommandManager().registerParser("item.config", new Parser() {
-            @Override
-            public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
-                ParserResult result = new ParserResult(data);
-
-                if (args.size() == 0) {
-                    return result;
-                }
-
-                String arg = args.remove(0);
-                result.getArgs().add(arg);
-
-                result.getCompletions().addAll(gui.getLocalConfig().getResolver("item").getKeys().stream()
-                        .filter(s -> s.startsWith(arg))
-                        .limit(20)
-                        .collect(Collectors.toList()));
-
-                result.getResults().addAll(gui.getLocalConfig().getResolver("item").getKeys().stream()
-                        .filter(s -> s.equals(arg))
-                        .limit(1)
-                        .collect(Collectors.toList()));
-
-                return result;
-            }
-        });
-
-        gui.getBukkitCommandManager().registerParser("item.package", new Parser() {
-            @Override
-            public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
-                ParserResult result = new ParserResult(data);
-
-                if (args.size() == 0) {
-                    return result;
-                }
-
-                String arg = args.remove(0);
-                result.getArgs().add(arg);
-
-                result.getCompletions().addAll(gui.getLocalConfig().getResolver("item").getPackages().stream()
-                        .filter(s -> s.startsWith(arg))
-                        .limit(20)
-                        .collect(Collectors.toList()));
-
-                int index = arg.lastIndexOf('.');
-                String pkg = index == -1 ? arg : arg.substring(0, index);
-
-                result.getResults().addAll(gui.getLocalConfig().getResolver("item").getPackages().stream()
-                        .filter(s -> s.equals(pkg) && index > arg.length())
-                        .limit(1)
-                        .map(s -> arg)
-                        .collect(Collectors.toList()));
-
-                return result;
-            }
-        });
-
-
-        // Actions
-//        gui.registerAction("open", new OpenAction());
+        gui.getBukkitCommandManager().registerParser("item.config", ItemConfigParser.class);
+        gui.getBukkitCommandManager().registerParser("item.package", ItemPackageParser.class);
 
         // Item Types
         registerItemType("bukkit", BukkitItemType.class);

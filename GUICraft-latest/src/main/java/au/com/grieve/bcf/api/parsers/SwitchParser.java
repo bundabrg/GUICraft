@@ -24,18 +24,23 @@ import au.com.grieve.bcf.api.ParserContext;
 import au.com.grieve.bcf.api.ParserNode;
 import au.com.grieve.bcf.api.SingleParser;
 import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
-import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
 
 import java.util.List;
 
-public class StringParser extends SingleParser {
+public class SwitchParser extends Parser {
 
-    public StringParser(CommandManager manager, ParserNode node, ParserContext context) {
+    public SwitchParser(CommandManager manager, ParserNode node, ParserContext context) {
         super(manager, node, context);
     }
 
     @Override
-    protected Object result() throws ParserInvalidResultException {
-        return getInput();
+    protected List<String> complete() {
+
     }
+
+    @Override
+    protected Object result() throws ParserInvalidResultException {
+        return null;
+    }
+
 }

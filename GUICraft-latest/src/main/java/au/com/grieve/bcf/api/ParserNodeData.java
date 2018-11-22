@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ParserNodeData {
     @Getter
@@ -78,6 +79,13 @@ public class ParserNodeData {
         ParserNodeData data = (ParserNodeData) obj;
 
         return data.getName().equals(name);
+    }
+
+    @Override
+    public String toString() {
+        return name + "(" + String.join(", ", parameters.entrySet().stream()
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.toList())) + ") -> " + (command==null?"null":(command.getClass().getName() + ":" + method.getName()));
     }
 
     /**

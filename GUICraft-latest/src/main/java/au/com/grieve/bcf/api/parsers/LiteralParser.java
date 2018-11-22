@@ -22,8 +22,9 @@ import au.com.grieve.bcf.api.CommandManager;
 import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.bcf.api.ParserContext;
 import au.com.grieve.bcf.api.ParserNode;
-import au.com.grieve.bcf.api.exceptions.ParserNoResultException;
-import au.com.grieve.bcf.api.exceptions.ParserOutOfArgumentsException;
+import au.com.grieve.bcf.api.SingleParser;
+import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
+import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,25 +38,24 @@ import java.util.List;
  * If * is provided then it will accept any input
  * Will use the first matching alias as an alternative for partials
  */
-public class LiteralParser extends Parser {
+public class LiteralParser extends SingleParser {
 
 
-    public LiteralParser(CommandManager manager, ParserNode node, List<String> args, ParserContext context) throws ParserOutOfArgumentsException {
-        super(manager, node, args, context);
+    public LiteralParser(CommandManager manager, ParserNode node, ParserContext context) {
+        super(manager, node, context);
     }
 
     @Override
-    protected List<String> completions() {
+    protected List<String> complete() {
         List<String> result = new ArrayList<>();
 
-        String arg = args.get(0);
         for (String alias : node.getData().getName().split("\\|")) {
             if (alias.equals("*")) {
-                result.add(arg);
+                result.add(getInput());
                 return result;
             }
 
-            if (alias.startsWith(arg)) {
+            if (alias.startsWith(getInput())) {
                 result.add(alias);
                 return result;
             }
@@ -65,24 +65,17 @@ public class LiteralParser extends Parser {
     }
 
     @Override
-    protected Object result() throws ParserOutOfArgumentsException {
-        if (args.size() == 0) {
-            throw new ParserOutOfArgumentsException();
-        }
-
-        String arg = args.get(0);
+    protected Object result() throws ParserInvalidResultException {
         for (String alias : node.getData().getName().split("\\|")) {
             if (alias.equals("*")) {
-                return arg;
+                return getInput();
             }
 
-            if (alias.equals(arg)) {
-                return arg;
+            if (alias.equals(getInput())) {
+                return getInput();
             }
         }
 
-        return new ParserNoResultException();
+        throw new ParserInvalidResultException();
     }
-
-
 }

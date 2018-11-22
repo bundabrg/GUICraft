@@ -18,18 +18,12 @@
 
 package au.com.grieve.guicraft.economy;
 
-import au.com.grieve.bcf.api.ArgData;
-import au.com.grieve.bcf.api.Parser;
-import au.com.grieve.bcf.api.ParserContext;
-import au.com.grieve.bcf.api.ParserResult;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.economy.commands.EconomyCommands;
 import au.com.grieve.guicraft.economy.types.VaultEconomy;
 import lombok.Getter;
-import org.bukkit.command.CommandSender;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Economy {
@@ -46,30 +40,6 @@ public class Economy {
 
         // Command Replacements
 //        gui.getCommandManager().getCommandReplacements().addReplacement("economy", "economy|e");
-
-        // Tab Completions
-        gui.getBukkitCommandManager().registerParser("economy.type", new Parser() {
-            @Override
-            public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
-                ParserResult result = new ParserResult(data);
-
-                if (args.size() == 0) {
-                    return result;
-                }
-
-                String arg = args.remove(0);
-                result.getArgs().add(arg);
-
-//                result.getCompletions().addAll(gui.getLocalConfig().getResolver("menu").getKeys().stream()
-//                        .filter(s -> s.startsWith(arg))
-//                        .limit(20)
-//                        .collect(Collectors.toList()));
-
-//                q
-
-                return result;
-            }
-        });
 
         // Economy Types
         VaultEconomy.register();

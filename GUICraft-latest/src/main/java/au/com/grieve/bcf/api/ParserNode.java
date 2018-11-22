@@ -152,7 +152,9 @@ public class ParserNode implements Iterable<ParserNode> {
         String pad = new String(repeat);
 
         // Our Data
-        result.append(pad).append(data.toString()).append("\n");
+        if (data != null) {
+            result.append(pad).append(data.toString()).append("\n");
+        }
 
         for (ParserNode n : children) {
             result.append(n.walkTree(depth + 1));

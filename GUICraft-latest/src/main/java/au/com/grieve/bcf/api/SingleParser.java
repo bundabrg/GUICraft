@@ -19,67 +19,26 @@
 package au.com.grieve.bcf.api;
 
 import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
-import au.com.grieve.bcf.api.exceptions.ParserNoResultException;
 import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public abstract class Parser {
-    // Data
-    @Getter
-    protected CommandManager manager;
-    @Getter
-    protected ParserNode node;
-    @Getter
-    protected ParserContext context;
-
+/**
+ * Supports a single argument parser
+ */
+public abstract class SingleParser extends Parser {
     @Getter
     private String input;
-    @Getter
-    private String unused;
 
-    // Cache
-    protected List<String> completions;
-    protected Object result;
-
-    public Parser(CommandManager manager, ParserNode node, String args, ParserContext context) throws ParserRequiredArgumentException {
-        this.manager = manager;
-        this.node = node;
-        this.context = context;
-
-        String[] data = arguments(args);
-        input = data[0];
-        unused = data[1];
+    public SingleParser(CommandManager manager, ParserNode node, ParserContext context) {
+        super(manager, node, context);
     }
 
-    public List<String> getCompletions() {
-        if (completions == null) {
-            completions = complete();
-        }
-        return completions;
-    }
-
-    public Object getResult() throws ParserInvalidResultException {
-        if (result == null) {
-            result = result();
-        }
-
-        return result;
-    }
-
-    // default methods
-
-    /**
-     * Return tuple containing used and unused input
-     *
-     * Defaults to removing a single argument
-     */
-    public String[] arguments(String args) throws ParserRequiredArgumentException {
-        String[] result = args.split(" ", 2);
+    public String parse(String input) throws ParserRequiredArgumentException {
+        String[] result = input.split(" ", 2);
 
         if (result.length == 0) {
             Map<String, String> parameters = node.getData().getParameters();
@@ -89,18 +48,28 @@ public abstract class Parser {
                 throw new ParserRequiredArgumentException();
             }
 
-            return new String[] {parameters.getOrDefault("default", ""), ""};
+            this.input = parameters.getOrDefault("default", null);
+            return null;
         }
 
-        return new String[] {result[0], result.length>1?result[1]:null};
+        this.input = result[0];
+        return result.length>1?result[1]:null;
     }
 
-    protected List<String> complete() {
-        return new ArrayList<>();
+    public List<String> getCompletions() {
+        if (input == null) {
+            return new ArrayList<>();
+        }
+
+        return super.getCompletions();
     }
 
-    // abstract methods
-    protected abstract Object result() throws ParserInvalidResultException;
+    public Object getResult() throws ParserInvalidResultException {
+        if (input == null) {
+            return null;
+        }
 
+        return super.getResult();
+    }
 
 }

@@ -18,25 +18,20 @@
 
 package au.com.grieve.guicraft.menu;
 
-import au.com.grieve.bcf.api.ArgData;
-import au.com.grieve.bcf.api.Parser;
-import au.com.grieve.bcf.api.ParserContext;
-import au.com.grieve.bcf.api.ParserResult;
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.config.PackageConfiguration;
 import au.com.grieve.guicraft.config.PackageSection;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.menu.commands.MenuCommands;
+import au.com.grieve.guicraft.menu.parsers.MenuConfigParser;
+import au.com.grieve.guicraft.menu.parsers.MenuPackageParser;
 import au.com.grieve.guicraft.menu.types.InventoryMenu;
 import lombok.Getter;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class Menu {
 
@@ -53,61 +48,9 @@ public class Menu {
 //        gui.getCommandManager().getCommandReplacements().addReplacement("menu", "menu|m");
 
         // Tab Completions
-        gui.getBukkitCommandManager().registerParser("menu.config", new Parser() {
-            @Override
-            public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
-                ParserResult result = new ParserResult(data);
+        gui.getBukkitCommandManager().registerParser("menu.config", MenuConfigParser.class);
 
-                if (args.size() == 0) {
-                    return result;
-                }
-
-                String arg = args.remove(0);
-                result.getArgs().add(arg);
-
-                result.getCompletions().addAll(gui.getLocalConfig().getResolver("menu").getKeys().stream()
-                        .filter(s -> s.startsWith(arg))
-                        .limit(20)
-                        .collect(Collectors.toList()));
-
-                result.getResults().addAll(gui.getLocalConfig().getResolver("menu").getKeys().stream()
-                        .filter(s -> s.equals(arg))
-                        .limit(1)
-                        .collect(Collectors.toList()));
-
-                return result;
-            }
-        });
-
-        gui.getBukkitCommandManager().registerParser("menu.package", new Parser() {
-            @Override
-            public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
-                ParserResult result = new ParserResult(data);
-
-                if (args.size() == 0) {
-                    return result;
-                }
-
-                String arg = args.remove(0);
-                result.getArgs().add(arg);
-
-                result.getCompletions().addAll(gui.getLocalConfig().getResolver("menu").getPackages().stream()
-                        .filter(s -> s.startsWith(arg))
-                        .limit(20)
-                        .collect(Collectors.toList()));
-
-                int index = arg.lastIndexOf('.');
-                String pkg = index == -1 ? arg : arg.substring(0, index);
-
-                result.getResults().addAll(gui.getLocalConfig().getResolver("menu").getPackages().stream()
-                        .filter(s -> s.equals(pkg) && index > arg.length())
-                        .limit(1)
-                        .map(s -> arg)
-                        .collect(Collectors.toList()));
-
-                return result;
-            }
-        });
+        gui.getBukkitCommandManager().registerParser("menu.package", MenuPackageParser.class);
 
         // Menu Types
         registerMenuType("inventory", InventoryMenu.class);

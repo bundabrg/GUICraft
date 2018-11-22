@@ -18,26 +18,24 @@
 
 package au.com.grieve.bcf.api.parsers;
 
-import au.com.grieve.bcf.api.ArgData;
-import au.com.grieve.bcf.api.BaseParser;
+import au.com.grieve.bcf.api.CommandManager;
+import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.bcf.api.ParserContext;
-import au.com.grieve.bcf.api.ParserResult;
+import au.com.grieve.bcf.api.ParserNode;
+import au.com.grieve.bcf.api.SingleParser;
+import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
+import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
 
 import java.util.List;
 
-public class StringBaseParser extends BaseParser {
+public class StringParser extends SingleParser {
+
+    public StringParser(CommandManager manager, ParserNode node, ParserContext context) {
+        super(manager, node, context);
+    }
+
     @Override
-    public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
-        ParserResult result = new ParserResult(data);
-
-        if (args.size() == 0) {
-            return result;
-        }
-
-        String arg = args.remove(0);
-
-        result.getArgs().add(arg);
-        result.getResults().add(arg);
-        return result;
+    protected Object result() throws ParserInvalidResultException {
+        return getInput();
     }
 }

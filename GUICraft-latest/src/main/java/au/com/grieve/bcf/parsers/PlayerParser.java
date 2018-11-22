@@ -19,15 +19,19 @@
 package au.com.grieve.bcf.parsers;
 
 import au.com.grieve.bcf.BukkitParserContext;
-import au.com.grieve.bcf.api.ArgData;
-import au.com.grieve.bcf.api.BaseParser;
+import au.com.grieve.bcf.api.CommandManager;
+import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.bcf.api.ParserContext;
-import au.com.grieve.bcf.api.ParserResult;
+import au.com.grieve.bcf.api.ParserNode;
+import au.com.grieve.bcf.api.SingleParser;
+import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
+import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,52 +44,55 @@ import java.util.stream.Collectors;
  *     any - (default) Any player
  *     online - Only online players
  */
-public class PlayerBaseParser extends BaseParser {
+public class PlayerParser extends SingleParser {
+
+    public PlayerParser(CommandManager manager, ParserNode node, ParserContext context) {
+        super(manager, node, context);
+    }
+
     @Override
-    public ParserResult resolve(ArgData data, List<String> args, ParserContext context) {
-        ParserResult result = new ParserResult(data);
-
-        if (args.size() == 0) {
-            return result;
-        }
-
-        String arg = args.remove(0);
-        result.getArgs().add(arg);
-
-        switch (data.getParameters().getOrDefault("mode", "any")) {
+    protected Object result() throws ParserInvalidResultException {
+        switch(getNode().getData().getParameters().getOrDefault("mode", "offline")) {
             case "online":
-                result.getCompletions().addAll(Bukkit.getOnlinePlayers().stream()
-                        .map(HumanEntity::getName)
-                        .filter(s -> s.startsWith(arg))
-                        .limit(20)
-                        .collect(Collectors.toList()));
-
-                if (arg.equals("@self")) {
-                    result.getResults().add(((BukkitParserContext) context).getSender());
-                } else {
-                    result.getResults().addAll(Bukkit.getOnlinePlayers().stream()
-                            .filter(p -> p.getName().equals(arg))
-                            .limit(1)
-                            .collect(Collectors.toList()));
+                if (getInput().equals("%self")) {
+                    return ((BukkitParserContext) context).getSender();
                 }
-                break;
-            default:
-                result.getCompletions().addAll(Arrays.stream(Bukkit.getOfflinePlayers())
-                        .map(OfflinePlayer::getName)
-                        .filter(s -> s.startsWith(arg))
-                        .limit(20)
-                        .collect(Collectors.toList()));
 
-                if (arg.equals("@self")) {
-                    result.getResults().add(Bukkit.getOfflinePlayer(((Player) ((BukkitParserContext) context).getSender()).getUniqueId()));
-                } else {
-                    result.getResults().addAll(Arrays.stream(Bukkit.getOfflinePlayers())
-                            .filter(p -> p.getName().equals(arg))
-                            .limit(1)
-                            .collect(Collectors.toList()));
+                return Bukkit.getOnlinePlayers().stream()
+                        .filter(p -> p.getName().equals(getInput()))
+                        .findFirst()
+                        .orElseThrow(ParserInvalidResultException::new);
+            case "offline":
+                if (getInput().equals("%self")) {
+                    return Bukkit.getOfflinePlayer(((Player) ((BukkitParserContext) context).getSender()).getUniqueId());
                 }
+
+                return Arrays.stream(Bukkit.getOfflinePlayers())
+                        .filter(p -> p.getName().equals(getInput()))
+                        .findFirst()
+                        .orElseThrow(ParserInvalidResultException::new);
         }
 
-        return result;
+        throw new ParserInvalidResultException();
+    }
+
+    @Override
+    protected List<String> complete() {
+        switch(getNode().getData().getParameters().getOrDefault("mode", "offline")) {
+            case "online":
+                return Bukkit.getOnlinePlayers().stream()
+                        .map(HumanEntity::getName)
+                        .filter(s -> s.startsWith(getInput()))
+                        .limit(20)
+                        .collect(Collectors.toList());
+            case "offline":
+                return Arrays.stream(Bukkit.getOfflinePlayers())
+                        .map(OfflinePlayer::getName)
+                        .filter(s -> s.startsWith(getInput()))
+                        .limit(20)
+                        .collect(Collectors.toList());
+        }
+
+        return new ArrayList<>();
     }
 }

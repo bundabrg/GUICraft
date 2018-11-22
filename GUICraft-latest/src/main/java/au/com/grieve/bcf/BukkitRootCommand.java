@@ -22,13 +22,13 @@ import au.com.grieve.bcf.api.CommandManager;
 import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.bcf.api.ParserNode;
 import au.com.grieve.bcf.api.RootCommand;
+import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
 import lombok.Getter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BukkitRootCommand extends Command implements RootCommand {
     @Getter
@@ -46,7 +46,18 @@ public class BukkitRootCommand extends Command implements RootCommand {
     public boolean execute(CommandSender sender, String alias, String[] args) {
         BukkitParserContext context = new BukkitParserContext(manager, sender);
 
-        List<Parser> result = manager.resolve(node, Arrays.asList(args), context);
+        List<Parser> result = manager.resolve(node, String.join(" ", args), context);
+
+        System.err.println("execute: " + String.join(", ", result.stream()
+                .map(r -> {
+                    try {
+                        return r.getNode().getData().getName() + ":" + r.getResult().getClass().getName();
+                    } catch (ParserInvalidResultException e) {
+                        return "[invalid]";
+                    }
+                })
+                .collect(Collectors.toList())
+        ));
 
 //        System.err.println("Result: " + String.join(",", result.stream()
 //                .flatMap(r -> r.getResults().stream()
@@ -93,7 +104,6 @@ public class BukkitRootCommand extends Command implements RootCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
         BukkitParserContext context = new BukkitParserContext(manager, sender);
-        List<Parser> result = manager.resolve(node, Arrays.asList(args), context);
-        return new ArrayList<>();
+        return manager.complete(node, String.join(" ", args), context);
     }
 }

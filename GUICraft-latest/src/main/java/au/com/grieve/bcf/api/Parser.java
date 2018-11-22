@@ -18,71 +18,62 @@
 
 package au.com.grieve.bcf.api;
 
-import au.com.grieve.bcf.api.exceptions.ParserNoResultException;
-import au.com.grieve.bcf.api.exceptions.ParserOutOfArgumentsException;
+import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
+import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
+import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public abstract class BaseParser implements Parser {
+public abstract class Parser {
     // Data
+    @Getter
     protected CommandManager manager;
-    protected List<String> args;
+    @Getter
     protected ParserNode node;
+    @Getter
     protected ParserContext context;
 
     // Cache
     protected List<String> completions;
     protected Object result;
 
-    protected BaseParser(CommandManager manager, ParserNode node, ParserContext context) {
+    public Parser(CommandManager manager, ParserNode node, ParserContext context) {
         this.manager = manager;
         this.node = node;
         this.context = context;
     }
 
-    public BaseParser(CommandManager manager, ParserNode node, List<String> args, ParserContext context) throws ParserOutOfArgumentsException {
-        this(manager, node, context);
-        this.args = arguments(args);
-    }
-
-    public boolean isValid() {
-        return false;
-    }
-
-    public List<String> getCompletions() throws ParserOutOfArgumentsException {
+    public List<String> getCompletions() {
         if (completions == null) {
-            completions = completions();
+            completions = complete();
         }
         return completions;
     }
 
-    public Object getResult() throws ParserNoResultException, ParserOutOfArgumentsException {
+    public Object getResult() throws ParserInvalidResultException {
         if (result == null) {
             result = result();
         }
+
         return result;
     }
 
     // default methods
 
-    /**
-     * Save arguments.
-     *
-     * By default just a single argument is used
-     */
-    protected List<String> arguments(List<String> args) throws ParserOutOfArgumentsException {
-        if (args.size() == 0) {
-            throw new ParserOutOfArgumentsException();
-        }
-
-        return new ArrayList<>(Collections.singletonList(args.remove(0)));
+    protected List<String> complete() {
+        return new ArrayList<>();
     }
 
     // abstract methods
-    protected abstract List<String> completions();
-    protected abstract Object result() throws ParserNoResultException;
+    protected abstract Object result() throws ParserInvalidResultException;
+
+    /**
+     * Take input and return the unused data
+     */
+    public String parse(String input) throws ParserRequiredArgumentException {
+        return input;
+    }
 
 
 }

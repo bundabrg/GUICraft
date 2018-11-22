@@ -16,12 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.guicraft.menu.parsers;
+package au.com.grieve.guicraft.item.parsers;
 
 import au.com.grieve.bcf.api.CommandManager;
 import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.bcf.api.ParserContext;
 import au.com.grieve.bcf.api.ParserNode;
+import au.com.grieve.bcf.api.SingleParser;
 import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
 import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
 import au.com.grieve.guicraft.GUICraft;
@@ -29,10 +30,10 @@ import au.com.grieve.guicraft.GUICraft;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MenuPackageParser extends Parser {
+public class ItemPackageParser extends SingleParser {
 
-    protected MenuPackageParser(CommandManager manager, ParserNode node, String args, ParserContext context) throws ParserRequiredArgumentException {
-        super(manager, node, args, context);
+    public ItemPackageParser(CommandManager manager, ParserNode node, ParserContext context) {
+        super(manager, node, context);
     }
 
     @Override
@@ -40,8 +41,10 @@ public class MenuPackageParser extends Parser {
         int index = getInput().lastIndexOf('.');
         String pkg = index == -1 ? getInput() : getInput().substring(0, index);
 
-        return GUICraft.getInstance().getLocalConfig().getResolver("menu").getPackages().stream()
-                .filter(s -> s.equals(pkg) && index > getInput().length())
+        System.err.println("ip: " + getInput() + " - " + pkg + " - " + index + " - " + getInput().length());
+
+        return GUICraft.getInstance().getLocalConfig().getResolver("item").getPackages().stream()
+                .filter(s -> s.equals(pkg) && index < getInput().length())
                 .map(s -> getInput())
                 .findFirst()
                 .orElseThrow(ParserInvalidResultException::new);
@@ -49,7 +52,7 @@ public class MenuPackageParser extends Parser {
 
     @Override
     protected List<String> complete() {
-        return GUICraft.getInstance().getLocalConfig().getResolver("menu").getPackages().stream()
+        return GUICraft.getInstance().getLocalConfig().getResolver("item").getPackages().stream()
                 .filter(s -> s.startsWith(getInput()))
                 .limit(20)
                 .collect(Collectors.toList());

@@ -22,6 +22,7 @@ import au.com.grieve.bcf.api.CommandManager;
 import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.bcf.api.ParserContext;
 import au.com.grieve.bcf.api.ParserNode;
+import au.com.grieve.bcf.api.SingleParser;
 import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
 import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
 import au.com.grieve.guicraft.GUICraft;
@@ -29,23 +30,28 @@ import au.com.grieve.guicraft.GUICraft;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MenuConfigParser extends Parser {
+public class MenuPackageParser extends SingleParser {
 
-    protected MenuConfigParser(CommandManager manager, ParserNode node, String args, ParserContext context) throws ParserRequiredArgumentException {
-        super(manager, node, args, context);
+
+    public MenuPackageParser(CommandManager manager, ParserNode node, ParserContext context) {
+        super(manager, node, context);
     }
 
     @Override
     protected Object result() throws ParserInvalidResultException {
-        return GUICraft.getInstance().getLocalConfig().getResolver("menu").getKeys().stream()
-                .filter(s -> s.equals(getInput()))
+        int index = getInput().lastIndexOf('.');
+        String pkg = index == -1 ? getInput() : getInput().substring(0, index);
+
+        return GUICraft.getInstance().getLocalConfig().getResolver("menu").getPackages().stream()
+                .filter(s -> s.equals(pkg) && index < getInput().length())
+                .map(s -> getInput())
                 .findFirst()
                 .orElseThrow(ParserInvalidResultException::new);
     }
 
     @Override
     protected List<String> complete() {
-        return GUICraft.getInstance().getLocalConfig().getResolver("menu").getKeys().stream()
+        return GUICraft.getInstance().getLocalConfig().getResolver("menu").getPackages().stream()
                 .filter(s -> s.startsWith(getInput()))
                 .limit(20)
                 .collect(Collectors.toList());

@@ -18,9 +18,9 @@
 
 package au.com.grieve.guicraft.menu.commands;
 
-import au.com.grieve.bcf.api.ParserResult;
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Description;
+import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import au.com.grieve.guicraft.exceptions.GUICraftException;
 import au.com.grieve.guicraft.menu.Menu;
@@ -37,9 +37,9 @@ import java.util.List;
 @Arg("menu|m")
 public class MenuCommands extends GUICraftCommand {
 
-    @Arg("open|o -player|p @player(required=true, default=@self, mode=online) @menu.config @menu.type.proxy(required=false)")
+    @Arg("open|o @player(switch=player|p, required=true, default=@self, mode=online) @menu.config @menu.type.proxy(required=false)")
     @Description("Open Menu")
-    public void onOpen(CommandSender sender, String path, Player player, List<ParserResult> data) {
+    public void onOpen(CommandSender sender, String path, Player player, List<Parser> data) {
         // Resolve Menu
         try {
             MenuType menuType = Menu.getInstance().resolveMenuType(path);

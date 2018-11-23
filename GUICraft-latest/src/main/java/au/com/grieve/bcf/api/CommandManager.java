@@ -60,8 +60,8 @@ public abstract class CommandManager {
      *
      * A context is passed to provide implementation specific data as well as useful data needed by parsers
      */
-    public List<Parser> resolve(ParserNode node, String args, ParserContext context) {
-        List<Parser> result = new ArrayList<>();
+//    public List<Parser> resolve(ParserNode node, String args, ParserContext context) {
+//        List<Parser> result = new ArrayList<>();
 
 //        for (ParserNode child : node.getChildren()) {
 //            ParserNodeData data = child.getData();
@@ -118,6 +118,137 @@ public abstract class CommandManager {
 //                result = childResult;
 //            }
 //        }
+
+//        return result;
+//    }
+
+    /**
+     * Return parsers for a switch
+     */
+    public List<Parser> switchResolve(ParserNode node, String args, ParserContext context) {
+        List<Parser> result = new ArrayList<>();
+
+        while (args != null && args.startsWith("-")) {
+            String[] argSplit = args.split(" ", 2);
+
+            // Complete it if last argument
+            if (argSplit.length < 2) {
+                return new ArrayList<>();
+            }
+
+            args = argSplit[1];
+
+            // Look for parser
+            Parser switchParser = context.getSwitches().stream()
+                    .flatMap(s -> Arrays.stream(s.getNode().getData().getParameters().get("switch").split("\\|"))
+                            .filter(sw -> sw.equals(argSplit[0].substring(1)))
+                            .limit(1)
+                            .map(sw -> s)
+                    )
+                    .findFirst()
+                    .orElse(null);
+
+            if (switchParser == null) {
+                return new ArrayList<>();
+            }
+
+            try {
+                args = switchParser.parse(args);
+            } catch (ParserRequiredArgumentException e) {
+                return new ArrayList<>();
+            }
+
+            // Make sure its a valid result
+            try {
+                switchParser.getResult();
+            } catch (ParserInvalidResultException e) {
+                return new ArrayList<>();
+            }
+
+            context.getSwitches().remove(switchParser);
+        }
+
+        result.addAll(resolve(node, args, context));
+        return result;
+    }
+
+    /**
+     * Return a list of Parsers
+     */
+    public List<Parser> resolve(ParserNode node, String args, ParserContext context) {
+        List<Parser> result = new ArrayList<>();
+
+        if (node == null) {
+            return result;
+        }
+
+        if (!node.isRoot() && node.getData() != null) {
+            ParserNodeData data = node.getData();
+
+            Class<? extends Parser> parserClass = parsers.getOrDefault(data.getName(), LiteralParser.class);
+
+            Parser parser;
+            try {
+                parser = parserClass.getConstructor(CommandManager.class, ParserNode.class, ParserContext.class)
+                        .newInstance(this, node, context);
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+                return new ArrayList<>();
+            }
+
+            // Take care of switches first in case this argument is also a switch
+            if (data.getParameters().containsKey("switch")) {
+                result.add(parser);
+                context.getSwitches().add(parser);
+
+            } else {
+                if (args != null && args.startsWith("-")) {
+                    result.addAll(switchResolve(node, args, context));
+                    return result;
+                }
+
+                try {
+                    args = parser.parse(args);
+                } catch (ParserRequiredArgumentException e) {
+                    return new ArrayList<>();
+                }
+
+                // Make sure its a valid result
+                try {
+                    parser.getResult();
+                } catch (ParserInvalidResultException e) {
+                    return new ArrayList<>();
+                }
+
+                result.add(parser);
+            }
+        }
+
+        // Recurse into children
+        if (node.getChildren().size() == 0) {
+            if (args != null && args.startsWith("-")) {
+                result.addAll(switchResolve(null, args, context));
+                return result;
+            }
+        }
+
+        List<Parser> best = new ArrayList<>();
+        for (ParserNode child : node.getChildren()) {
+            // Make a copy of the context
+            ParserContext childContext;
+            try {
+                childContext = (ParserContext) context.clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+                break;
+            }
+
+            List<Parser> check = resolve(child, args, childContext);
+            if (check.size() > best.size()) {
+                best = check;
+            }
+        }
+        result.addAll(best);
 
         return result;
     }

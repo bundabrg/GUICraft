@@ -54,6 +54,8 @@ public class BukkitRootCommand extends Command implements RootCommand {
                         return r.getNode().getData().getName() + ":" + r.getResult().getClass().getName();
                     } catch (ParserInvalidResultException e) {
                         return "[invalid]";
+                    } catch (Exception e) {
+                        return "[exception: " + e.getClass().getName() + "]";
                     }
                 })
                 .collect(Collectors.toList())

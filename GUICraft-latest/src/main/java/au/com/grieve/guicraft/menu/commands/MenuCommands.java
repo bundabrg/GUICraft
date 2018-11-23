@@ -37,7 +37,7 @@ import java.util.List;
 @Arg("menu|m")
 public class MenuCommands extends GUICraftCommand {
 
-    @Arg("open|o @player(switch=player|p, required=true, default=@self, mode=online) @menu.config @menu.type.proxy(required=false)")
+    @Arg("open|o @player(switch=player|p, required=true, default=%self, mode=online) @menu.config @menu.type.proxy(required=false)")
     @Description("Open Menu")
     public void onOpen(CommandSender sender, String path, Player player, List<Parser> data) {
         // Resolve Menu
@@ -67,7 +67,7 @@ public class MenuCommands extends GUICraftCommand {
         }
     }
 
-    @Arg("close|c @player(switch=player|p, required=true, default=@self, mode=online)")
+    @Arg("close|c @player(switch=player|p, required=true, default=%self, mode=online)")
     @Description("Close Menu")
     public void onClose(CommandSender sender, Player player) {
         // Resolve Menu

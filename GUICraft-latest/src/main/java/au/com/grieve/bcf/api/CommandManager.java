@@ -121,6 +121,18 @@ public abstract class CommandManager {
 
 //        return result;
 //    }
+    public List<Parser> getResolve(ParserNode node, String args, ParserContext context) {
+        return resolve(node, args, context).stream()
+                .filter(p -> {
+                    try {
+                        p.getResult();
+                        return true;
+                    } catch (ParserInvalidResultException e) {
+                        return false;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
 
     /**
      * Return parsers for a switch
@@ -301,6 +313,10 @@ public abstract class CommandManager {
             context.getSwitches().remove(switchParser);
         }
 
+        return complete(node, args, context);
+    }
+
+    public List<String> getComplete(ParserNode node, String args, ParserContext context) {
         return complete(node, args, context);
     }
 

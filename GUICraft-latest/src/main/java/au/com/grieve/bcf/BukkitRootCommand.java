@@ -46,7 +46,7 @@ public class BukkitRootCommand extends Command implements RootCommand {
     public boolean execute(CommandSender sender, String alias, String[] args) {
         BukkitParserContext context = new BukkitParserContext(manager, sender);
 
-        List<Parser> result = manager.resolve(node, String.join(" ", args), context);
+        List<Parser> result = manager.getResolve(node, String.join(" ", args), context);
 
         System.err.println("execute: " + String.join(", ", result.stream()
                 .map(r -> {
@@ -106,6 +106,6 @@ public class BukkitRootCommand extends Command implements RootCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
         BukkitParserContext context = new BukkitParserContext(manager, sender);
-        return manager.complete(node, String.join(" ", args), context);
+        return manager.getComplete(node, String.join(" ", args), context);
     }
 }

@@ -20,12 +20,10 @@ package au.com.grieve.bcf.parsers;
 
 import au.com.grieve.bcf.BukkitParserContext;
 import au.com.grieve.bcf.api.CommandManager;
-import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.bcf.api.ParserContext;
 import au.com.grieve.bcf.api.ParserNode;
-import au.com.grieve.bcf.api.SingleParser;
 import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
-import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
+import au.com.grieve.bcf.api.parsers.SingleParser;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.HumanEntity;

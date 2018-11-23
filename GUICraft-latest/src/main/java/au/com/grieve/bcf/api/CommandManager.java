@@ -24,18 +24,14 @@ import au.com.grieve.bcf.api.parsers.DoubleParser;
 import au.com.grieve.bcf.api.parsers.IntegerParser;
 import au.com.grieve.bcf.api.parsers.LiteralParser;
 import au.com.grieve.bcf.api.parsers.StringParser;
-import au.com.grieve.bcf.api.parsers.SwitchParser;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public abstract class CommandManager {
 
@@ -67,70 +63,61 @@ public abstract class CommandManager {
     public List<Parser> resolve(ParserNode node, String args, ParserContext context) {
         List<Parser> result = new ArrayList<>();
 
-        for (ParserNode child : node.getChildren()) {
-            ParserNodeData data = child.getData();
-
-            // Check validity
-            if (data == null) {
-                continue;
-            }
-
-            // Make a copy of the context
-            ParserContext childContext;
-            try {
-                childContext = (ParserContext) context.clone();
-            } catch (CloneNotSupportedException e) {
-                e.printStackTrace();
-                break;
-            }
-
-            List<Parser> childResult;
-
-            // If it's a switch parser then save and recurse
-            System.err.println(data.getName() + " - " + data.getParameters().keySet());
-            if (data.getParameters().containsKey("switch")) {
-                System.err.println("Found Switch: " + data.getName());
-                childContext.getSwitches().add(node);
-                childResult = resolve(child, args, childContext);
-            } else {
-
-                Class<? extends Parser> parserClass = parsers.getOrDefault("@" + data.getName(), LiteralParser.class);
-
-                Parser parser;
-                try {
-                    parser = parserClass.getConstructor(CommandManager.class, ParserNode.class, String.class, ParserContext.class)
-                            .newInstance(this, child, args, childContext);
-                } catch (InstantiationException | NoSuchMethodException | IllegalAccessException e) {
-                    e.printStackTrace();
-                    continue;
-                } catch (InvocationTargetException e) {
-                    // If its missing a required argument, then we are done
-                    if (e.getCause() instanceof ParserRequiredArgumentException) {
-                        continue;
-                    }
-                    e.printStackTrace();
-                    continue;
-                }
-
-                // Make sure it returns a valid result
-                try {
-                    parser.getResult();
-                } catch (ParserInvalidResultException e) {
-                    continue;
-                }
-
-                // Valid parser we recurse into
-                List<Parser> r = resolve(child, parser.getUnused(), childContext);
-                childResult = Stream.concat(
-                        Collections.singletonList(parser).stream(),
-                        resolve(child, parser.getUnused(), childContext).stream())
-                        .collect(Collectors.toList());
-            }
-
-            if (childResult.size() > result.size()) {
-                result = childResult;
-            }
-        }
+//        for (ParserNode child : node.getChildren()) {
+//            ParserNodeData data = child.getData();
+//
+//            // Check validity
+//            if (data == null) {
+//                continue;
+//            }
+//
+//            // Make a copy of the context
+//            ParserContext childContext;
+//            try {
+//                childContext = (ParserContext) context.clone();
+//            } catch (CloneNotSupportedException e) {
+//                e.printStackTrace();
+//                break;
+//            }
+//
+//            List<Parser> childResult;
+//
+//            Class<? extends Parser> parserClass = parsers.getOrDefault("@" + data.getName(), LiteralParser.class);
+//
+//            Parser parser;
+//            try {
+//                parser = parserClass.getConstructor(CommandManager.class, ParserNode.class, String.class, ParserContext.class)
+//                        .newInstance(this, child, args, childContext);
+//            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException e) {
+//                e.printStackTrace();
+//                continue;
+//            } catch (InvocationTargetException e) {
+//                // If its missing a required argument, then we are done
+//                if (e.getCause() instanceof ParserRequiredArgumentException) {
+//                    continue;
+//                }
+//                e.printStackTrace();
+//                continue;
+//            }
+//
+//            // Make sure it returns a valid result
+//            try {
+//                parser.getResult();
+//            } catch (ParserInvalidResultException e) {
+//                continue;
+//            }
+//
+//            // Valid parser we recurse into
+//            List<Parser> r = resolve(child, parser.getUnused(), childContext);
+//            childResult = Stream.concat(
+//                    Collections.singletonList(parser).stream(),
+//                    resolve(child, parser.getUnused(), childContext).stream())
+//                    .collect(Collectors.toList());
+//
+//            if (childResult.size() > result.size()) {
+//                result = childResult;
+//            }
+//        }
 
         return result;
     }
@@ -139,7 +126,7 @@ public abstract class CommandManager {
      * Return a list completions
      */
     public List<String> complete(ParserNode node, String args, ParserContext context) {
-//        List<String> result = new ArrayList<>();
+        List<String> result = new ArrayList<>();
 
         if (!node.isRoot() && node.getData() != null) {
             ParserNodeData data = node.getData();
@@ -155,75 +142,76 @@ public abstract class CommandManager {
                 return new ArrayList<>();
             }
 
-            // If its a switch we handle it differently
+            // Take care of switches first in case this argument is also a switch
             if (data.getParameters().containsKey("switch")) {
                 context.getSwitches().add(parser);
-            }
-
-            // Does argument start with a dash? Handle it as a switch
-            while (args.startsWith("-")) {
-                String[] argSplit = args.split(" ", 2);
-
-                // Complete it if last argument
-                if (argSplit.length == 1) {
-                    return context.getSwitches().stream()
-                            .flatMap(s -> Arrays.stream(s.getNode().getData().getParameters().get("switch").split("\\|"))
-                                    .filter(sw -> sw.startsWith(argSplit[0].substring(1)))
-                                    .limit(1)
-                            )
-                            .limit(20)
-                            .collect(Collectors.toList());
-                }
-
-                args = argSplit[1];
-
-                // Look for parser
-                Parser switchParser = context.getSwitches().stream()
-                        .flatMap(s -> Arrays.stream(s.getNode().getData().getParameters().get("swith").split("\\|"))
-                                .filter(sw -> sw.equals(argSplit[0].substring(1)))
-                                .limit(1)
-                                .map(sw -> s)
-                        )
-                        .findFirst()
-                        .orElse(null);
-
-                if (switchParser == null) {
-                    return new ArrayList<>();
-                }
-
+            } else {
                 try {
-                    args = switchParser.parse(args);
+                    args = parser.parse(args);
                 } catch (ParserRequiredArgumentException e) {
                     return new ArrayList<>();
                 }
 
-                if (args == null) {
-
+                if (args != null) {
+                    // Make sure its a valid result for non leaf nodes
+                    try {
+                        parser.getResult();
+                    } catch (ParserInvalidResultException e) {
+                        return new ArrayList<>();
+                    }
+                } else {
+                    result.addAll(parser.getCompletions());
                 }
             }
+        }
 
+        // TODO: Match - to switches
+        while (args != null && args.startsWith("-")) {
+            String[] argSplit = args.split(" ", 2);
 
+            // Complete it if last argument
+            if (argSplit.length == 1) {
+                return context.getSwitches().stream()
+                        .flatMap(s -> Arrays.stream(s.getNode().getData().getParameters().get("switch").split("\\|"))
+                                .filter(sw -> sw.startsWith(argSplit[0].substring(1)))
+                                .limit(1)
+                        )
+                        .map(s -> "-" + s)
+                        .limit(20)
+                        .collect(Collectors.toList());
+            }
+
+            args = argSplit[1];
+
+            // Look for parser
+            Parser switchParser = context.getSwitches().stream()
+                    .flatMap(s -> Arrays.stream(s.getNode().getData().getParameters().get("switch").split("\\|"))
+                            .filter(sw -> sw.equals(argSplit[0].substring(1)))
+                            .limit(1)
+                            .map(sw -> s)
+                    )
+                    .findFirst()
+                    .orElse(null);
+
+            if (switchParser == null) {
+                return new ArrayList<>();
+            }
 
             try {
-                args = parser.parse(args);
+                args = switchParser.parse(args);
             } catch (ParserRequiredArgumentException e) {
                 return new ArrayList<>();
             }
 
-            if (args != null) {
-                // Make sure its a valid result for non leaf nodes
-                try {
-                    parser.getResult();
-                } catch (ParserInvalidResultException e) {
-                    return new ArrayList<>();
-                }
-            } else {
-                return parser.getCompletions();
+            if (args == null) {
+                return switchParser.getCompletions();
             }
+
+            context.getSwitches().remove(switchParser);
         }
 
         // Recurse into children
-        List<String> result = new ArrayList<>();
+
         for (ParserNode child : node.getChildren()) {
             // Make a copy of the context
             ParserContext childContext;

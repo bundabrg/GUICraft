@@ -16,8 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf.api;
+package au.com.grieve.bcf.api.parsers;
 
+import au.com.grieve.bcf.api.CommandManager;
+import au.com.grieve.bcf.api.Parser;
+import au.com.grieve.bcf.api.ParserContext;
+import au.com.grieve.bcf.api.ParserNode;
 import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
 import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
 import lombok.Getter;
@@ -38,9 +42,7 @@ public abstract class SingleParser extends Parser {
     }
 
     public String parse(String input) throws ParserRequiredArgumentException {
-        String[] result = input.split(" ", 2);
-
-        if (result.length == 0) {
+        if (input == null) {
             Map<String, String> parameters = node.getData().getParameters();
 
             // Check if a default is provided or if its not required
@@ -51,6 +53,8 @@ public abstract class SingleParser extends Parser {
             this.input = parameters.getOrDefault("default", null);
             return null;
         }
+
+        String[] result = input.split(" ", 2);
 
         this.input = result[0];
         return result.length>1?result[1]:null;

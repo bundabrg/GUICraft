@@ -60,6 +60,16 @@ public class Menu {
 
     }
 
+    public static Menu getInstance() {
+        return instance;
+    }
+
+    public static void init() {
+        if (instance == null) {
+            instance = new Menu();
+        }
+    }
+
     /**
      * Register a MenuType
      */
@@ -91,16 +101,6 @@ public class Menu {
                     .newInstance(section);
         } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new MenuException("Failed to resolve MenuType: " + path, e);
-        }
-    }
-
-    public static Menu getInstance() {
-        return instance;
-    }
-
-    public static void init() {
-        if (instance == null) {
-            instance = new Menu();
         }
     }
 

@@ -19,7 +19,6 @@
 package au.com.grieve.bcf.api;
 
 import lombok.Getter;
-import lombok.Setter;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -85,22 +84,13 @@ public class ParserNodeData {
     public String toString() {
         return name + "(" + String.join(", ", parameters.entrySet().stream()
                 .map(e -> e.getKey() + "=" + e.getValue())
-                .collect(Collectors.toList())) + ") -> " + (command==null?"null":(command.getClass().getName() + ":" + method.getName()));
+                .collect(Collectors.toList())) + ") -> " + (command == null ? "null" : (command.getClass().getName() + ":" + method.getName()));
     }
 
     /**
      * Parse a string and return new Data Nodes
      */
     public static class StringParser {
-        enum State {
-            NAME,
-            PARAM_KEY,
-            PARAM_VALUE,
-            PARAM_VALUE_QUOTE,
-            PARAM_VALUE_QUOTE_END,
-            PARAM_END
-        }
-
         public static List<ParserNodeData> parse(StringReader reader) {
             List<ParserNodeData> result = new ArrayList<>();
 
@@ -126,7 +116,7 @@ public class ParserNodeData {
 
                 char c = (char) i;
 
-                switch(state) {
+                switch (state) {
                     case NAME:
                         switch (" (,".indexOf(c)) {
                             case 0:
@@ -149,7 +139,7 @@ public class ParserNodeData {
                         }
                         break;
                     case PARAM_KEY:
-                        switch("=".indexOf(c)) {
+                        switch ("=".indexOf(c)) {
                             case 0:
                                 state = State.PARAM_VALUE;
                                 value = new StringBuilder();
@@ -159,7 +149,7 @@ public class ParserNodeData {
                         }
                         break;
                     case PARAM_VALUE:
-                        switch(",)\"'".indexOf(c)) {
+                        switch (",)\"'".indexOf(c)) {
                             case 0:
                                 parameters.put(key.toString().trim(), value.toString().trim());
                                 key = new StringBuilder();
@@ -183,7 +173,7 @@ public class ParserNodeData {
                         }
                         break;
                     case PARAM_VALUE_QUOTE:
-                        switch("\"'\\".indexOf(c)) {
+                        switch ("\"'\\".indexOf(c)) {
                             case 0:
                             case 1:
                                 if (c == quote) {
@@ -211,7 +201,7 @@ public class ParserNodeData {
                         }
                         break;
                     case PARAM_VALUE_QUOTE_END:
-                        switch(",)".indexOf(c)) {
+                        switch (",)".indexOf(c)) {
                             case 0:
                                 state = State.PARAM_KEY;
                                 break;
@@ -228,13 +218,22 @@ public class ParserNodeData {
                         break;
                 }
 
-            } while(true);
+            } while (true);
 
             if (state == State.NAME && name.length() > 0) {
                 result.add(new ParserNodeData(name.toString()));
             }
 
             return result;
+        }
+
+        enum State {
+            NAME,
+            PARAM_KEY,
+            PARAM_VALUE,
+            PARAM_VALUE_QUOTE,
+            PARAM_VALUE_QUOTE_END,
+            PARAM_END
         }
 
     }

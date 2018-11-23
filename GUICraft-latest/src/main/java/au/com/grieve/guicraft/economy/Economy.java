@@ -49,6 +49,12 @@ public class Economy {
 
     }
 
+    public static void init() {
+        if (instance == null) {
+            new Economy();
+        }
+    }
+
     /**
      * Register a MenuType
      */
@@ -61,12 +67,5 @@ public class Economy {
      */
     public void unregisterEconomyType(String name) {
         economyTypes.remove(name);
-    }
-
-
-    public static void init() {
-        if (instance == null) {
-            new Economy();
-        }
     }
 }

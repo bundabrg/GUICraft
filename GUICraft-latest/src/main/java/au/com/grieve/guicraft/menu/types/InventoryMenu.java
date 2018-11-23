@@ -55,6 +55,9 @@ public class InventoryMenu implements MenuType, Listener {
         Bukkit.getServer().getPluginManager().registerEvents(this, GUICraft.getPlugin());
     }
 
+    public static void init() {
+    }
+
     @Override
     public void open(Player player) {
         String title = config.getString("title", "Menu");
@@ -112,7 +115,7 @@ public class InventoryMenu implements MenuType, Listener {
 
         if (inventorySlotMap.containsKey(event.getRawSlot())) {
             List<String> matches = new ArrayList<>();
-            switch(event.getClick()) {
+            switch (event.getClick()) {
                 case LEFT:
                     matches.add("left");
                     break;
@@ -164,8 +167,5 @@ public class InventoryMenu implements MenuType, Listener {
     private class InventorySlot {
         ItemType itemType;
         ConfigurationSection configurationSection;
-    }
-
-    public static void init() {
     }
 }

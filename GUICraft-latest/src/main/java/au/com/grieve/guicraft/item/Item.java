@@ -59,6 +59,13 @@ public class Item {
         GUICraft.getInstance().getBukkitCommandManager().registerCommand(new BukkitCommands());
     }
 
+    public static void init() {
+        if (instance == null) {
+            instance = new Item();
+        }
+
+    }
+
     /**
      * Register a new ItemType
      */
@@ -72,7 +79,6 @@ public class Item {
     public void unregisterItemType(String name) {
         itemTypes.remove(name);
     }
-
 
     /**
      * Lookup an ItemType by variable
@@ -92,13 +98,6 @@ public class Item {
         } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new ItemException("Unable to resolve ItemType: " + path, e);
         }
-    }
-
-    public static void init() {
-        if (instance == null) {
-            instance = new Item();
-        }
-
     }
 
 }

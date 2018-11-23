@@ -36,11 +36,11 @@ import java.util.stream.Collectors;
 
 /**
  * Name of a player
- *
+ * <p>
  * Parameters:
- *   mode:
- *     any - (default) Any player
- *     online - Only online players
+ * mode:
+ * any - (default) Any player
+ * online - Only online players
  */
 public class PlayerParser extends SingleParser {
 
@@ -50,7 +50,7 @@ public class PlayerParser extends SingleParser {
 
     @Override
     protected Object result() throws ParserInvalidResultException {
-        switch(getNode().getData().getParameters().getOrDefault("mode", "offline")) {
+        switch (getNode().getData().getParameters().getOrDefault("mode", "offline")) {
             case "online":
                 if (getInput().equals("%self")) {
                     return ((BukkitParserContext) context).getSender();
@@ -76,7 +76,7 @@ public class PlayerParser extends SingleParser {
 
     @Override
     protected List<String> complete() {
-        switch(getNode().getData().getParameters().getOrDefault("mode", "offline")) {
+        switch (getNode().getData().getParameters().getOrDefault("mode", "offline")) {
             case "online":
                 return Bukkit.getOnlinePlayers().stream()
                         .map(HumanEntity::getName)

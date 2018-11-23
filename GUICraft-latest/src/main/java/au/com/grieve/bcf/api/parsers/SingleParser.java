@@ -57,7 +57,7 @@ public abstract class SingleParser extends Parser {
         String[] result = input.split(" ", 2);
 
         this.input = result[0];
-        return result.length>1?result[1]:null;
+        return result.length > 1 ? result[1] : null;
     }
 
     public List<String> getCompletions() {

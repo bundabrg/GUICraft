@@ -20,8 +20,6 @@ package au.com.grieve.bcf.api;
 
 import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
-import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
 import java.util.List;

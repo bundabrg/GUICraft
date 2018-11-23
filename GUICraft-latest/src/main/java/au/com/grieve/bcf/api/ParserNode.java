@@ -34,11 +34,10 @@ public class ParserNode implements Iterable<ParserNode> {
     ParserNode parent;
     @Getter
     List<ParserNode> children;
-    private List<ParserNode> elementsIndex;
-
     // Data
     @Getter
     ParserNodeData data;
+    private List<ParserNode> elementsIndex;
 
     public ParserNode() {
         this.children = new ArrayList<>();
@@ -60,7 +59,7 @@ public class ParserNode implements Iterable<ParserNode> {
     }
 
     public ParserNode addChild(ParserNode child) {
-        assert(child.isRoot());
+        assert (child.isRoot());
 
         child.parent = this;
         this.children.add(child);
@@ -99,7 +98,7 @@ public class ParserNode implements Iterable<ParserNode> {
 
     /**
      * Create a new node at path.
-     *
+     * <p>
      * As this may result in multiple nodes created the new leaf nodes are returned
      */
     public List<ParserNode> create(String path) {
@@ -112,7 +111,7 @@ public class ParserNode implements Iterable<ParserNode> {
 
         List<ParserNode> current = Collections.singletonList(this);
 
-        for(List<ParserNodeData> newData = ParserNodeData.StringParser.parse(reader); newData.size() > 0;newData = ParserNodeData.StringParser.parse(reader)) {
+        for (List<ParserNodeData> newData = ParserNodeData.StringParser.parse(reader); newData.size() > 0; newData = ParserNodeData.StringParser.parse(reader)) {
             List<ParserNode> newCurrent = new ArrayList<>();
 
             for (ParserNode node : current) {

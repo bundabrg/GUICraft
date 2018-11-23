@@ -38,7 +38,7 @@ public class Action {
 
     public void execute(CommandSender sender, String prefix, String[] matches) {
         for (String action : parseConfiguration(config, matches)) {
-            String command = (prefix == null?"":prefix + " ") + action;
+            String command = (prefix == null ? "" : prefix + " ") + action;
             System.err.println(command);
             Bukkit.dispatchCommand(sender, command);
         }
@@ -46,6 +46,7 @@ public class Action {
 
     /**
      * Parse action from Configuration, returning list of Actions to execute
+     *
      * @param config
      * @param subActions
      * @return

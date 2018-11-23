@@ -3,7 +3,7 @@ main: au.com.grieve.guicraft.GUICraftPlugin
 api-version: 1.13
 description: Advanced GUI System
 authors:
-  - bundabrg
+- bundabrg
 version: 1.0-preview
 softdepend:
 - Vault

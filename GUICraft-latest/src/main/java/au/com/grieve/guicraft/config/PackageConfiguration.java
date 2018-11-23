@@ -56,13 +56,13 @@ public class PackageConfiguration extends PackageSection implements Configuratio
     }
 
     @Override
-    public void setDefaults(Configuration configuration) {
-
+    public Configuration getDefaults() {
+        return null;
     }
 
     @Override
-    public Configuration getDefaults() {
-        return null;
+    public void setDefaults(Configuration configuration) {
+
     }
 
     /**

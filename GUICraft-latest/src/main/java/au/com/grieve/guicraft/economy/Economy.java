@@ -20,6 +20,7 @@ package au.com.grieve.guicraft.economy;
 
 import au.com.grieve.guicraft.GUICraft;
 import au.com.grieve.guicraft.economy.commands.EconomyCommands;
+import au.com.grieve.guicraft.economy.parsers.EconomyProxyBuy;
 import au.com.grieve.guicraft.economy.types.VaultEconomy;
 import lombok.Getter;
 
@@ -43,6 +44,9 @@ public class Economy {
 
         // Economy Types
         VaultEconomy.register();
+
+        // Tab Completions
+        gui.getBukkitCommandManager().registerParser("economy.proxy.buy", EconomyProxyBuy.class);
 
         // Commands
         gui.getBukkitCommandManager().registerCommand(new EconomyCommands());

@@ -18,6 +18,7 @@
 
 package au.com.grieve.bcf;
 
+import au.com.grieve.bcf.api.BaseCommand;
 import au.com.grieve.bcf.api.CommandManager;
 import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.bcf.api.ParserNode;
@@ -27,8 +28,11 @@ import lombok.Getter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BukkitRootCommand extends Command implements RootCommand {
     @Getter
@@ -51,7 +55,7 @@ public class BukkitRootCommand extends Command implements RootCommand {
         System.err.println("execute: " + String.join(", ", result.stream()
                 .map(r -> {
                     try {
-                        return r.getNode().getData().getName() + ":" + r.getResult().getClass().getName();
+                        return r.getNode().getData().getName() + ":" + (r.getResult() == null ? "[null]" : r.getResult().getClass().getName());
                     } catch (ParserInvalidResultException e) {
                         return "[invalid]";
                     } catch (Exception e) {
@@ -61,45 +65,47 @@ public class BukkitRootCommand extends Command implements RootCommand {
                 .collect(Collectors.toList())
         ));
 
-//        System.err.println("Result: " + String.join(",", result.stream()
-//                .flatMap(r -> r.getResults().stream()
-//                        .map(q -> q == null ? "null" : q.getClass().getName()))
-//                .collect(Collectors.toList())));
-//        if (result.size() > 0) {
-//            Method method = result.get(result.size() - 1).getData().getMethod();
-//            BaseCommand cmd = result.get(result.size() - 1).getData().getCommand();
-//
-//            if (method != null && cmd != null) {
-//                // Generate list of parameters
-//                List<Object> objs = Stream.concat(
-//                        Stream.of(sender),
-//                        result.stream()
-//                                .filter(r -> !r.getParameters().getOrDefault("suppress", "false").equals("true"))
-//                                .flatMap(r -> r.getResults().stream())
-//                )
-//                        .limit(method.getParameterCount()).collect(Collectors.toList());
-//
-//                // Fill out extra parameters with null
-//                while (objs.size() < method.getParameterCount()) {
-//                    objs.add(null);
-//                }
-//
-//                System.err.println("O: " + Stream.of(objs.toArray())
-//                        .map(p -> {
-//                            if (p == null) {
-//                                return "null ";
-//                            } else {
-//                                return p.getClass().getName() + " ";
-//                            }
-//                        }).collect(Collectors.joining()));
-//                try {
-//                    System.err.println(method + " - " + String.join(",", Arrays.stream(method.getParameterTypes()).map(p -> p.getName()).collect(Collectors.toList())));
-//                    method.invoke(cmd, objs.toArray());
-//                } catch (IllegalAccessException | InvocationTargetException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
+        if (result.size() > 0) {
+            Method method = result.get(result.size() - 1).getNode().getData().getMethod();
+            BaseCommand cmd = result.get(result.size() - 1).getNode().getData().getCommand();
+
+            if (method != null && cmd != null) {
+                // Generate list of parameters
+                List<Object> objs = Stream.concat(
+                        Stream.of(sender),
+                        result.stream()
+                                .filter(r -> !r.getParameter("suppress", "false").equals("true"))
+                                .map(r -> {
+                                    try {
+                                        return r.getResult();
+                                    } catch (ParserInvalidResultException e) {
+                                        e.printStackTrace();
+                                    }
+                                    return null;
+                                })
+                )
+                        .limit(method.getParameterCount()).collect(Collectors.toList());
+
+                // Fill out extra parameters with null
+                while (objs.size() < method.getParameterCount()) {
+                    objs.add(null);
+                }
+
+                System.err.println("O: " + Stream.of(objs.toArray())
+                        .map(p -> {
+                            if (p == null) {
+                                return "null ";
+                            } else {
+                                return p.getClass().getName() + " ";
+                            }
+                        }).collect(Collectors.joining()));
+                try {
+                    method.invoke(cmd, objs.toArray());
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         return true;
     }
 

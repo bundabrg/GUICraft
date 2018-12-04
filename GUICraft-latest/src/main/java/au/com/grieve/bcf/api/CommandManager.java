@@ -122,16 +122,25 @@ public abstract class CommandManager {
 //        return result;
 //    }
     public List<Parser> getResolve(ParserNode node, String args, ParserContext context) {
-        return resolve(node, args, context).stream()
-                .filter(p -> {
-                    try {
-                        p.getResult();
-                        return true;
-                    } catch (ParserInvalidResultException e) {
-                        return false;
-                    }
-                })
-                .collect(Collectors.toList());
+        List<Parser> result = new ArrayList<>();
+        for (Parser p : resolve(node, args, context)) {
+            if (!p.isParsed()) {
+                try {
+                    p.parse(null);
+                } catch (ParserRequiredArgumentException e) {
+                    break;
+                }
+            }
+
+            try {
+                p.getResult();
+            } catch (ParserInvalidResultException e) {
+                break;
+            }
+
+            result.add(p);
+        }
+        return result;
     }
 
     /**
@@ -233,6 +242,7 @@ public abstract class CommandManager {
                 }
 
                 result.add(parser);
+                context.getParsers().add(parser);
             }
         }
 

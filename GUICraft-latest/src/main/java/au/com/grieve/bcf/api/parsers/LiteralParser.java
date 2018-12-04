@@ -40,6 +40,7 @@ public class LiteralParser extends SingleParser {
 
     public LiteralParser(CommandManager manager, ParserNode node, ParserContext context) {
         super(manager, node, context);
+        defaultParameters.put("suppress", "true");
     }
 
     @Override

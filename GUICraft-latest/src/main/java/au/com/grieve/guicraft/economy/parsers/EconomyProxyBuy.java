@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package au.com.grieve.bcf.api.parsers;
+package au.com.grieve.guicraft.economy.parsers;
 
 import au.com.grieve.bcf.api.CommandManager;
 import au.com.grieve.bcf.api.Parser;
@@ -24,60 +24,34 @@ import au.com.grieve.bcf.api.ParserContext;
 import au.com.grieve.bcf.api.ParserNode;
 import au.com.grieve.bcf.api.exceptions.ParserInvalidResultException;
 import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
-import lombok.Getter;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-/**
- * Supports a single argument parser
- */
-public abstract class SingleParser extends Parser {
-    @Getter
+public class EconomyProxyBuy extends Parser {
+    private ParserNode root = new ParserNode();
     private String input;
 
-    public SingleParser(CommandManager manager, ParserNode node, ParserContext context) {
+    public EconomyProxyBuy(CommandManager manager, ParserNode node, ParserContext context) {
         super(manager, node, context);
+
+
+        root.create("@int(min=3,max=10) @double");
     }
 
     @Override
     public String parse(String input) throws ParserRequiredArgumentException {
         parsed = true;
-        if (input == null) {
-            Map<String, String> parameters = node.getData().getParameters();
-
-            // Check if a default is provided or if its not required
-            if (!parameters.containsKey("default") && parameters.getOrDefault("required", "true").equals("true")) {
-                throw new ParserRequiredArgumentException();
-            }
-
-            this.input = parameters.getOrDefault("default", null);
-            return null;
-        }
-
-        String[] result = input.split(" ", 2);
-
-        this.input = result[0];
-        return result.length > 1 ? result[1] : null;
+        this.input = input;
+        return null;
     }
 
     @Override
-    public List<String> getCompletions() {
-        if (input == null) {
-            return new ArrayList<>();
-        }
-
-        return super.getCompletions();
+    protected Object result() throws ParserInvalidResultException {
+        return manager.getResolve(root, input, context);
     }
 
     @Override
-    public Object getResult() throws ParserInvalidResultException {
-        if (input == null) {
-            return null;
-        }
-
-        return super.getResult();
+    protected List<String> complete() {
+        return manager.getComplete(root, input, context);
     }
-
 }

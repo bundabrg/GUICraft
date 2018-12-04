@@ -50,6 +50,7 @@ public class PlayerParser extends SingleParser {
 
     @Override
     protected Object result() throws ParserInvalidResultException {
+        System.err.println("BRGBRG: " + getInput());
         switch (getNode().getData().getParameters().getOrDefault("mode", "offline")) {
             case "online":
                 if (getInput().equals("%self")) {

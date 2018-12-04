@@ -23,7 +23,9 @@ import au.com.grieve.bcf.api.exceptions.ParserRequiredArgumentException;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class Parser {
     // Data
@@ -33,6 +35,11 @@ public abstract class Parser {
     protected ParserNode node;
     @Getter
     protected ParserContext context;
+    @Getter
+    protected Map<String, String> defaultParameters = new HashMap<>();
+
+    @Getter
+    protected boolean parsed = false;
 
     // Cache
     protected List<String> completions;
@@ -59,6 +66,14 @@ public abstract class Parser {
         return result;
     }
 
+    public String getParameter(String key) {
+        return getParameter(key, null);
+    }
+
+    public String getParameter(String key, String def) {
+        return node.getData().getParameters().getOrDefault(key, defaultParameters.getOrDefault(key, def));
+    }
+
     // default methods
 
     protected List<String> complete() {
@@ -72,6 +87,7 @@ public abstract class Parser {
      * Take input and return the unused data
      */
     public String parse(String input) throws ParserRequiredArgumentException {
+        parsed = true;
         return input;
     }
 

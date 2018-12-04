@@ -39,7 +39,7 @@ public class MenuCommands extends GUICraftCommand {
 
     @Arg("open|o @player(switch=player|p, required=true, default=%self, mode=online) @menu.config @menu.type.proxy(required=false)")
     @Description("Open Menu")
-    public void onOpen(CommandSender sender, String path, Player player, List<Parser> data) {
+    public void onOpen(CommandSender sender, Player player, String path, List<Parser> data) {
         // Resolve Menu
         try {
             MenuType menuType = Menu.getInstance().resolveMenuType(path);

@@ -30,6 +30,8 @@ public class ParserContext implements Cloneable {
     private CommandManager manager;
     @Getter
     private List<Parser> switches = new ArrayList<>();
+    @Getter
+    private List<Parser> parsers = new ArrayList<>();
 
     public ParserContext(CommandManager manager) {
         this.manager = manager;

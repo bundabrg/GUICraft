@@ -20,18 +20,21 @@ package au.com.grieve.guicraft.economy.commands;
 
 import au.com.grieve.bcf.annotations.Arg;
 import au.com.grieve.bcf.annotations.Description;
+import au.com.grieve.bcf.api.Parser;
 import au.com.grieve.guicraft.commands.GUICraftCommand;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+
+import java.util.List;
 
 @Arg("economy|e")
 public class EconomyCommands extends GUICraftCommand {
 
 
-    @Arg("buy|b @item.config @player(switch=player|p, required=true, default=@self) @double @int")
+    @Arg("buy|b @player(switch=player|p, required=true, default=%self, mode=offline) @economy.type(switch=type|t, required=true) @item.config @economy.proxy.buy(required=false)")
     @Description("Buy Item")
-    public void onBuy(CommandSender sender, String itemPath, OfflinePlayer player, double cost, int qty) {
-        System.err.println(sender + ", " + itemPath + ", " + player + ", " + cost + ", " + qty);
+    public void onBuy(CommandSender sender, OfflinePlayer player, String economyType, String itemPath, List<Parser> data) {
+        System.err.println(sender + ", " + player + ", " + itemPath + ", " + data);
     }
 
 //    @Subcommand("buy|b")
